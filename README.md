@@ -11,7 +11,7 @@ Inteligência Artificial vem passando por uma renascença com grande progresso e
 
 Recentemente, entre 2017 e 2018, foram publicados os artigos [1],[5],[6] que descrevem algoritmos de predição de grafos generalizados, podendo assim prever, com dada margem de erro, grafos de saída dados grafos de entrada. Isso permitiria aproximar a solução de problemas em variadas áreas, incluindo química molecular, mecânica corpuscular, genética e estudo de comunidades.
 
-    Em 2 de Janeiro de 2019, foi feita uma revisão dos principais algoritmos de aprendizagem para a resolução do problema em questão [4]. Essa revisão aborda os três algoritmos citados em [1],[5],[6]. Testes iniciais, motivados pela banca orientadora, indicam a possibilidade de haver uma restrição computacional na generalização desses algoritmos preditivos. 
+Em 2 de Janeiro de 2019, foi feita uma revisão dos principais algoritmos de aprendizagem para a resolução do problema em questão [4]. Essa revisão aborda os três algoritmos citados em [1],[5],[6]. Testes iniciais, motivados pela banca orientadora, indicam a possibilidade de haver uma restrição computacional na generalização desses algoritmos preditivos. 
 
 A hipótese é que existem limitações nesses algoritmos por causa da simplificação na representação dos grafos. Grafos são estruturas invariantes a permutações de vértices e todos as técnicas citadas usam conjuntos de treinamentos que não consideram todas as permutações possíveis, porque isso seria impraticável já que o tempo de treino seria fatorial no número de vértices, o que é chamado de explosão combinatória. Para melhor compreender as limitações desses algoritmos mencionados, estes serão avaliados em três datasets diferentes com a finalidade de mapear restrições e possíveis melhorias. 
 

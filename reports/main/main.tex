@@ -1,0 +1,93 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+%\usepackage[portuguese]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+%\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{url}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{textcomp}
+\usepackage{verbatim}
+\usepackage{setspace}
+\usepackage{geometry}
+\geometry{top=2.3cm,bottom=2.2cm,left=2.5cm,right=2.5cm}
+
+\renewcommand{\subfigtopskip}{2pt}
+\renewcommand{\subfigbottomskip}{0pt}
+\renewcommand{\subfigcapskip}{-2pt}
+
+\newenvironment{myenumerate}{
+\begin{enumerate}
+  \setlength{\itemsep}{-2pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{5pt}
+}{\end{enumerate}}
+
+\newenvironment{myitemize}{
+\begin{itemize}
+  \setlength{\itemsep}{5pt}
+  \setlength{\parskip}{0pt}
+  \setlength{\parsep}{5pt}
+}{\end{itemize}}
+
+%\renewcommand{\familydefault}{\sfdefault}
+
+\begin{document}
+
+\tolerance=999
+\sloppy
+
+%\renewcommand\bibname{References}
+
+%\thispagestyle{empty}
+
+\input{ic_header}
+
+\title{Combinatory study on graph network predictions}
+
+\author{
+    \normalsize
+    \textbf{Professor Adin},
+    \textbf{Professor Rafael},
+    \normalsize
+    \\
+    \normalsize
+    Alan Corrales (RA ??????); \\
+    Allana Idalgo (RA ??????); \\
+    Lucas  Racoci (RA 156331)
+}
+\date{\vspace{-5ex}}
+\maketitle
+
+
+\vspace*{0.5cm}
+
+\begin{spacing}{1.15}
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+\input{content/abstract}
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{content/intro}
+
+\end{spacing}
+
+{\small
+\begin{singlespace}
+\bibliographystyle{bib/IEEEtran}
+\bibliography{bib/bib}
+\end{singlespace}
+}
+
+\end{document}

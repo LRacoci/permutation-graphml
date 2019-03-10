@@ -37,21 +37,19 @@ class GoogleDrive():
       print ("Saving {} in {}".format(title, path))
       file.GetContentFile(path)
   
-  def save(source = "results", target = "1Twv_oBTB_P9aQ7VWinMOwsLScj6N8Hfc"):
+  def save(self, source = "results", target = "1Twv_oBTB_P9aQ7VWinMOwsLScj6N8Hfc"):
     if not os.path.isdir(source):
       print ("Please provide a valid path to save in google drive")
     
-    for file in os.listdir(source):
-      if not os.path.isdir(file):
+    for title in os.listdir(source):
+      path = '/'.join([source, title])
+      if not os.path.isdir(path):
         dFile = self._drive.CreateFile({'title': title, "parents": [{"id": target}]})
-        dFile.SetContentFile(file)
+        dFile.SetContentFile(path)
         dFile.Upload()
-      # Create & upload a text file.
-      print('Uploaded file with ID {}'.format(uploaded.get('id')))
+        print('Uploaded file with ID {}'.format(dFile.get('id')))
       
-g = GoogleDrive()
-
 # Test
-
-g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN")
-g.save("drive/1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN")
+g = GoogleDrive()
+g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN", "UniqueGraphs")
+g.save("drive/UniqueGraphs")

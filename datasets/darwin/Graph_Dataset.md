@@ -8,14 +8,14 @@ It is possible to change the number of point by surface, the number or type of f
 
 <table>
   <tr>
-    <th><img src="surf_example/surf_1.png" alt="non-trivial image" width="100%" align="center"></th>
-    <th><img src="surf_example/surf_2.png" alt="non-trivial image" width="100%" align="center"></th>
-    <th><img src="surf_example/surf_8.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="surface/example/surf_1.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="surface/example/surf_2.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="surface/example/surf_8.png" alt="non-trivial image" width="100%" align="center"></th>
   </tr>
   <tr>
-    <td><img src="surf_example/surf_6.png" alt="non-trivial image" width="100%" align="center"></td>
-    <td><img src="surf_example/surf_9.png" alt="non-trivial image" width="100%" align="center"></td>
-    <td><img src="surf_example/surf_4.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="surface/example/surf_6.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="surface/example/surf_9.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="surface/example/surf_4.png" alt="non-trivial image" width="100%" align="center"></td>
   </tr>
 </table>
 
@@ -28,14 +28,14 @@ It is possible to change the number of individuals by community.
 
 <table>
   <tr>
-    <th><img src="comm_example/comm_20.png" alt="non-trivial image" width="100%" align="center"></th>
-    <th><img src="comm_example/comm_24.png" alt="non-trivial image" width="100%" align="center"></th>
-    <th><img src="comm_example/comm_28.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="community/example/comm_20.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="community/example/comm_24.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="community/example/comm_28.png" alt="non-trivial image" width="100%" align="center"></th>
   </tr>
   <tr>
-    <td><img src="comm_example/comm_00.png" alt="non-trivial image" width="100%" align="center"></td>
-    <td><img src="comm_example/comm_04.png" alt="non-trivial image" width="100%" align="center"></td>
-    <td><img src="comm_example/comm_08.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="community/example/comm_00.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="community/example/comm_04.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="community/example/comm_08.png" alt="non-trivial image" width="100%" align="center"></td>
   </tr>
 </table>
 

@@ -388,7 +388,7 @@ def test_create_community():
   np.random.shuffle(graphs_create)
   feature_graphs, pos, graphs = generate_feature_list(graphs_create, num_perm)
   feature_graphs[:], pos[:], graphs[:] = shuffle_list(list(feature_graphs), list(pos), list(graphs))
-  
+
   #graphs = np.asarray(graphs, dtype=np.float32)
   for i in range(len(graphs)):
     graphs[i] = nx.to_numpy_matrix(graphs[i])
@@ -399,7 +399,7 @@ def test_create_community():
   print("feature_graphs[0].shape: ", feature_graphs[0].shape)
   counter = 0
   draw_graph(G_arr=graphs[0:40], row=2, col=2, pos=feature_graphs[0:40], fname='comm/comm_'+str(counter))
-  
+
 #test_create_community()
 
 class GenerateDataGraph:
@@ -545,11 +545,9 @@ def test_batch_gen():
         nx.set_edge_attributes(G = g, name ="features", values = 0)
       graph_tuple = utils_np.networkxs_to_graphs_tuple(gt_graph)
       print (graph_tuple)
-      graph_tuple.tofile('comm/comm_'+str(counter)+'.blah')
       #for k in range(len(gt_graph)):
       #  counter += 1
       #  save_graph(name='comm/comm_'+str(counter), points_coord=set_feature[k], adj=gt_graph[k], dim=2)
       break
 
 test_batch_gen()
-

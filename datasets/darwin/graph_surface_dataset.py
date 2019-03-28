@@ -565,6 +565,8 @@ class GenerateDataGraphSurface:
         input_graphs = self.generate_input_graphs(type_Adj, self.num_graphs, self.num_nodes,\
             proportion=proportion_edge)#aleatory
 
+        target_array = self.generate_target(graph_type=type_dataset)
+
         #self.graphs_test = graphs[int(proportion[0] * self.num_graphs):] #0.8
         #save_graph_list(self.graphs_test, 'gt.dat')
         '''
@@ -615,6 +617,8 @@ class GenerateDataGraphSurface:
         self.valid_generator = self.batch_generator(graphs_validate, feature_validate, input_graph_validate)
         self.test_generator = self.batch_generator(graphs_test, feature_test, input_graph_test)
 
+        self.target = target_array
+
         print("DATASET:", type_dataset)
         print("num_graphs:", self.num_graphs)
         print("num_nodes by graph:", self.num_nodes)
@@ -638,6 +642,23 @@ class GenerateDataGraphSurface:
             np.fill_diagonal(graph_i, 1.0)
             inputs_graphs.append(graph_i.astype(np.float32))
         return inputs_graphs
+
+    def generate_target( self, graph_type):
+        #types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
+        target_array = [0,0,0,0,0,0]
+        if graph_type == 'elliptic_paraboloid':
+            target_array[0] = 1
+        elif graph_type == 'saddle':
+            target_array[1] = 1
+        elif graph_type == 'torus':
+            target_array[2] = 1
+        elif graph_type == 'ellipsoid':
+            target_array[3] = 1
+        elif graph_type == 'elliptic_hyperboloid':
+            target_array[4] = 1
+        else:
+            target_array[5] = 1
+        return target_array
 
     def batch_generator( self, db_graph, db_feature, db_input_graph ):
         def gen_batch( batch_size ):
@@ -806,6 +827,7 @@ np.set_printoptions(threshold=np.nan)
 def test_batch_gen():
     types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
     gen_graph = GenerateDataGraphSurface(type_dataset='elliptic_hyperboloid', num_surfaces=2, num_points=4)
+    print(gen_graph.target)
     epochs=1
     batch_size=10
     for epoch in range(epochs):

@@ -377,7 +377,7 @@ class SurfaceNumpyGenerator:
                 list_adj.append(adj_perm)
                 #list_point_features_perm.append(T_mtrx_perm)
                 #list_adj_perm.append(adj_perm)
-            
+
         return list_point_features, list_adj
 
     def get_permutations(self, feature, adj, num_perm):
@@ -497,13 +497,13 @@ def test_create_surface():
 #test_create_surface()
 
 class GenerateDataGraphSurface:
-    
-    def __init__(self, 
-        type_dataset='saddle', 
-        num_surfaces=100, 
-        num_points=100, 
+
+    def __init__(self,
+        type_dataset='saddle',
+        num_surfaces=100,
+        num_points=100,
         proportion=(0.8, 0.2),
-        proportion_edge=[8./10, 2./10], 
+        proportion_edge=[8./10, 2./10],
         type_Adj='empty'
     ):
         '''proportion: for training and testing stage
@@ -535,7 +535,7 @@ class GenerateDataGraphSurface:
             np.random.shuffle(merge_point_and_adj_test)
             feature_graphs_test, graphs_test = zip(*merge_point_and_adj_test)
 
-            feature_graphs.extend(feature_graphs_train); 
+            feature_graphs.extend(feature_graphs_train);
             feature_graphs.extend(feature_graphs_test);
             graphs.extend(graphs_train); graphs.extend(graphs_test);
         else:
@@ -592,7 +592,7 @@ class GenerateDataGraphSurface:
         n_training = 0.8 #0.96
         n_eval = 0.1 #0.02
         n_test = 0.1 #0.02
-        
+
         graphs_test = graphs[int(self.num_graphs*n_training)+int(self.num_graphs*n_eval):] #0.2
         graphs_train = graphs[0:int(self.num_graphs*n_training)] #0.8
         graphs_validate = graphs[int(self.num_graphs*n_training):int(self.num_graphs*n_training)+int(self.num_graphs*n_eval)] #0.2
@@ -753,21 +753,21 @@ def darwin_batches_to_networkx_graphs(graphs, node_features):
     Args:
         graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
         node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
-    
+
     Returns:
         graphs_tuple : GraphTuple from graph_nets
     '''
     nxGraphs = []
     for graph, node_feature in zip(graphs, node_features):
         nxGraph = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
-        nx.set_node_attributes(G = nxGraph, name ="pos", values = {n : val for n,val in enumerate(node_feature)})
+        nx.set_node_attributes(G = nxGraph, name ="features", values = {n : val for n,val in enumerate(node_feature)})
         nx.set_edge_attributes(G = nxGraph, name ="features", values = 0)
         nxGraphs.append(nxGraph)
-    
+
     return nxGraphs
 
 import json
-def json_default(obj) : 
+def json_default(obj) :
     class_name = obj.__class__.__name__
     serialization = {
         'int64' : int,
@@ -794,7 +794,7 @@ def graphs_tuple_loads(string_dump):
     for data_dict in data_dicts:
         for key in data_dict:
             data_dict[key] = np.array(data_dict[key])
-    
+
     graphs_tuple = utils_np.data_dicts_to_graphs_tuple(data_dicts)
     return graphs_tuple
 
@@ -837,16 +837,16 @@ def test_batch_gen():
             print("---- batch ----")
             print("gt_graph: ", gt_graph)
             print("set_feature: ", set_feature)
-            
+
             print("in_graph.shape: ", in_graph.shape)
             print("gt_graph.shape: ", gt_graph.shape)
             print("set_feature.shape: ", set_feature.shape)
-            
+
             nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature)
             graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
             print("graphs_tuple.shape : ", graphs_tuple.map(lambda a: a if a is None else a.shape, fields=graphs.ALL_FIELDS))
             saveable_string = graphs_tuple_dumps(graphs_tuple)
-            
+
             with open("surf/surf{}.json".format(epoch+1), 'w') as file:
                 file.write(saveable_string)
 

@@ -25,7 +25,7 @@ def feature_standardization(X):
 
     return std_feature
 
-class create_surface:
+class SurfaceNumpyGenerator:
     '''function surface from http://mathworld.wolfram.com/AlgebraicSurface.html'''
 
     def __init__(self, num_surfaces, num_points):
@@ -480,7 +480,7 @@ def test_create_surface():
     num_surfaces = 18
     num_points = 400
     num_perm = 3
-    csurf = create_surface(num_surfaces,num_points)
+    csurf = SurfaceNumpyGenerator(num_surfaces,num_points)
     types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
     list_point, list_adj = csurf.generate_func(type='torus',num_surfaces=num_surfaces, num_perm=num_perm)
     print("len(list_point): ", len(list_point))
@@ -497,7 +497,7 @@ def test_create_surface():
 #test_create_surface()
 
 class GenerateDataGraphSurface:
-
+    
     def __init__(self, 
         type_dataset='saddle', 
         num_surfaces=100, 
@@ -508,7 +508,7 @@ class GenerateDataGraphSurface:
     ):
         '''proportion: for training and testing stage
         proportion_edge: proportion of edges and no edges in the adj mtrx'''
-        self.csurf = create_surface(num_surfaces,num_points)
+        self.csurf = SurfaceNumpyGenerator(num_surfaces,num_points)
         num_perm = 3
         if type_dataset == 'all':
             types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
@@ -748,7 +748,7 @@ import numpy as np
 import sonnet as snt
 import tensorflow as tf
 
-def darwin_batches_to_graphs_tuples(graphs, node_features):
+def darwin_batches_to_networkx_graphs(graphs, node_features):
     '''
     Args:
         graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
@@ -760,12 +760,11 @@ def darwin_batches_to_graphs_tuples(graphs, node_features):
     nxGraphs = []
     for graph, node_feature in zip(graphs, node_features):
         nxGraph = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
-        nx.set_node_attributes(G = nxGraph, name ="features", values = {n : val for n,val in enumerate(node_feature)})
+        nx.set_node_attributes(G = nxGraph, name ="pos", values = {n : val for n,val in enumerate(node_feature)})
         nx.set_edge_attributes(G = nxGraph, name ="features", values = 0)
         nxGraphs.append(nxGraph)
     
-    graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
-    return graphs_tuple
+    return nxGraphs
 
 import json
 def json_default(obj) : 
@@ -843,7 +842,8 @@ def test_batch_gen():
             print("gt_graph.shape: ", gt_graph.shape)
             print("set_feature.shape: ", set_feature.shape)
             
-            graphs_tuple = darwin_batches_to_graphs_tuples(gt_graph, set_feature)
+            nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature)
+            graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
             print("graphs_tuple.shape : ", graphs_tuple.map(lambda a: a if a is None else a.shape, fields=graphs.ALL_FIELDS))
             saveable_string = graphs_tuple_dumps(graphs_tuple)
             
@@ -869,5 +869,3 @@ def test_batch_gen():
                     draw_surface(name='surf/surf'+str(counter)+'_'+str(j+1), points_coord=feature_perm[j], adj=adj_perm[j])
             '''
             break
-
-test_batch_gen()

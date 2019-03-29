@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import sys
+sys.path.insert(0, '../datasets/darwin')
+from graph_surface_dataset import *
 
 #@title Imports  { form-width: "30%" }
 
@@ -19,6 +22,8 @@ import networkx as nx
 import numpy as np
 from scipy import spatial
 import tensorflow as tf
+
+from plot_networkx_helper import *
 
 SEED = 1
 np.random.seed(SEED)
@@ -52,7 +57,7 @@ def darwin_batches_to_networkx_graphs(graphs, node_features):
     Args:
         graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
         node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
-
+    
     Returns:
         graphs_tuple : GraphTuple from graph_nets
     '''
@@ -62,7 +67,7 @@ def darwin_batches_to_networkx_graphs(graphs, node_features):
         nx.set_node_attributes(G = nxGraph, name ="features", values = {n : val for n,val in enumerate(node_feature)})
         nx.set_edge_attributes(G = nxGraph, name ="features", values = 0)
         nxGraphs.append(nxGraph)
-
+    
     return nxGraphs
 
 def print_graph(g):
@@ -100,7 +105,7 @@ def to_one_hot(indices, max_value, axis=-1):
 def create_feature(feature, fields):
     return np.hstack([np.array(feature[field], dtype=float) for field in fields])
 
-
+    
 def generate_raw_graphs(
 	rand,
     num_examples = 2,
@@ -117,7 +122,7 @@ def generate_raw_graphs(
 	]
 	min_nodes, max_nodes = min_max_nodes
 	num_nodes = rand.randint(min_nodes, max_nodes)
-
+	
 	gen_graph = GenerateDataGraphSurface(type_dataset='elliptic_hyperboloid', num_surfaces=num_examples, num_points=num_nodes)
 	epochs=1
 	batch_size=10
@@ -129,14 +134,14 @@ def generate_raw_graphs(
 			print("---- batch ----")
 			print("gt_graph: ", gt_graph)
 			print("set_feature: ", set_feature)
-
+			
 			print("in_graph.shape: ", in_graph.shape)
 			print("gt_graph.shape: ", gt_graph.shape)
 			print("set_feature.shape: ", set_feature.shape)
-
+			
 			nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature)
 			return nxGraphs
-
+			
 			'''
 			graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
 			print("graphs_tuple.shape : ", graphs_tuple.map(lambda a: a if a is None else a.shape, fields=graphs.ALL_FIELDS))
@@ -201,21 +206,17 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
     raw_graphs = generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density)
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     source_ph = utils_tf.placeholders_from_networkxs(
-        source_graphs
+        source_graphs,
+        force_dynamic_num_graphs=True
     )
 
     target_graphs = [target_from_raw(raw) for raw in raw_graphs]
     # print_graphs(target_graphs)
 
     target_ph = utils_tf.placeholders_from_networkxs(
-        target_graphs
+        target_graphs,
+        force_dynamic_num_graphs=True
     )
-    print("source_ph-->")
-    print_graphs_tuple(source_ph)
-
-    print("target_ph-->")
-    print_graphs_tuple(target_ph)
-
     return source_ph, target_ph
 
 
@@ -288,7 +289,7 @@ def make_all_runnable_in_session(*args):
 
 tf.reset_default_graph()
 
-seed = 2
+seed = 2 
 rand = np.random.RandomState(seed=seed)
 
 # Model parameters.
@@ -316,7 +317,7 @@ input_ph, target_ph = create_placeholders(
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(edge_output_size=2, node_output_size=3)
+model = models.EncodeProcessDecode(edge_output_size=2, node_output_size=2)
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)

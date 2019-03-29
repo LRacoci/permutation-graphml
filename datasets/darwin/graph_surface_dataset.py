@@ -353,14 +353,38 @@ class SurfaceNumpyGenerator:
             #list_point_features[i] = T_mtrx.T
             #list_adj[i] = adj
 
-            T_mtrx_perms, adj_perms = self.get_unique_permutations(
-                feature = T_mtrx.T,
-                adj = adj,
-                num_perm = num_perm
-            )
-            list_point_features += list(T_mtrx_perms)
-            list_adj += list(adj_perms)
-            
+            perm_set = []#set()
+            #choose permutation without permutation
+            while len(perm_set) < num_perm:
+                index_perm = np.random.permutation(self.num_points)
+                is_repeat = False
+                for m in range(len(perm_set)):
+                    tmp_repeat = np.array_equal(perm_set[m], index_perm)
+                    is_repeat = is_repeat and tmp_repeat
+                if is_repeat == False:
+                    perm_set.append(index_perm)
+
+            for l in range(num_perm):
+                index = perm_set[l]
+                T_mtrx_tranp = T_mtrx.T
+
+                T_mtrx_perm = np.zeros_like(T_mtrx_tranp)
+                for x in range(self.num_points):
+                    T_mtrx_perm[index[x]] = T_mtrx_tranp[x]
+
+                adj_perm = np.zeros((self.num_points,self.num_points))
+
+                for x in range(self.num_points):
+                    for y in range(self.num_points):
+                        if adj[x][y] == 1. or adj[y][x] == 1.:
+                            adj_perm[index[x]][index[y]] = 1.#adj[x][y]
+                            adj_perm[index[y]][index[x]] = 1.
+
+                list_point_features.append(T_mtrx_perm)
+                list_adj.append(adj_perm)
+                #list_point_features_perm.append(T_mtrx_perm)
+                #list_adj_perm.append(adj_perm)
+
         return list_point_features, list_adj
 
     def get_unique_permutations(self, feature, adj, num_perm):
@@ -454,13 +478,13 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-    
-    def __init__(self, 
-        type_dataset='saddle', 
-        num_surfaces=100, 
-        num_points=100, 
+
+    def __init__(self,
+        type_dataset='saddle',
+        num_surfaces=100,
+        num_points=100,
         proportion=(0.8, 0.2),
-        proportion_edge=[8./10, 2./10], 
+        proportion_edge=[8./10, 2./10],
         type_Adj='empty'
     ):
         '''proportion: for training and testing stage
@@ -492,7 +516,7 @@ class GenerateDataGraphSurface:
             np.random.shuffle(merge_point_and_adj_test)
             feature_graphs_test, graphs_test = zip(*merge_point_and_adj_test)
 
-            feature_graphs.extend(feature_graphs_train); 
+            feature_graphs.extend(feature_graphs_train);
             feature_graphs.extend(feature_graphs_test);
             graphs.extend(graphs_train); graphs.extend(graphs_test);
         else:
@@ -549,7 +573,7 @@ class GenerateDataGraphSurface:
         n_training = 0.8 #0.96
         n_eval = 0.1 #0.02
         n_test = 0.1 #0.02
-        
+
         graphs_test = graphs[int(self.num_graphs*n_training)+int(self.num_graphs*n_eval):] #0.2
         graphs_train = graphs[0:int(self.num_graphs*n_training)] #0.8
         graphs_validate = graphs[int(self.num_graphs*n_training):int(self.num_graphs*n_training)+int(self.num_graphs*n_eval)] #0.2
@@ -692,3 +716,137 @@ def save_graph_merge(name, points_coord, adj_pred, adj_gt, dim):
 def save_H(name, features):
     '''features.shape: (num_points, dim)'''
     np.savetxt(name+'_feature.csv', features, delimiter=",", fmt='%10.6f')
+
+from graph_nets import blocks
+from graph_nets import graphs
+from graph_nets import modules
+from graph_nets import utils_np
+from graph_nets import utils_tf
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import sonnet as snt
+import tensorflow as tf
+
+def darwin_batches_to_networkx_graphs(graphs, node_features):
+    '''
+    Args:
+        graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
+        node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
+
+    Returns:
+        graphs_tuple : GraphTuple from graph_nets
+    '''
+    nxGraphs = []
+    for graph, node_feature in zip(graphs, node_features):
+        nxGraph = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
+        nx.set_node_attributes(G = nxGraph, name ="features", values = {n : val for n,val in enumerate(node_feature)})
+        nx.set_edge_attributes(G = nxGraph, name ="features", values = 0)
+        nxGraphs.append(nxGraph)
+
+    return nxGraphs
+
+import json
+def json_default(obj) :
+    class_name = obj.__class__.__name__
+    serialization = {
+        'int64' : int,
+        'int32' : int,
+        'ndarray' : list
+    }
+    if class_name in serialization:
+        return serialization[class_name](obj)
+    else:
+        print("Unserializable object {} of type {}".format(obj, type(obj)))
+        raise TypeError(
+            "Unserializable object {} of type {}".format(obj, class_name)
+        )
+
+def json_dumps(obj, indent = 4, default = json_default) :
+    return json.dumps(obj, indent = indent, default = default)
+
+def graphs_tuple_dumps(graphs_tuple):
+    data_dicts = utils_np.graphs_tuple_to_data_dicts(graphs_tuple)
+    return json_dumps(data_dicts)
+
+def graphs_tuple_loads(string_dump):
+    data_dicts = json.loads(string_dump)
+    for data_dict in data_dicts:
+        for key in data_dict:
+            data_dict[key] = np.array(data_dict[key])
+
+    graphs_tuple = utils_np.data_dicts_to_graphs_tuple(data_dicts)
+    return graphs_tuple
+
+
+def graphs_tuples_to_darwin_batches(graph_nets):
+    '''
+    Args:
+        graphs_tuple : GraphTuple from graph_nets
+    Returns:
+        graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
+        node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
+    '''
+    adjs = []
+    node_features = []
+    data_dicts = utils_np.graphs_tuple_to_data_dicts(graph_nets)
+    for data_dict in data_dicts:
+        nodes = data_dict['nodes']
+        num_nodes= len(nodes)
+        adj = np.zeros(shape = (num_nodes, num_nodes))
+        senders = data_dict['senders']
+        receivers = data_dict['receivers']
+        adj[senders, receivers] = 1
+        adjs.append(adj)
+        node_features.append(nodes)
+
+    return np.array(adjs), np.array(node_features)
+
+np.set_printoptions(threshold=np.nan)
+def test_batch_gen():
+    types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
+    gen_graph = GenerateDataGraphSurface(type_dataset='elliptic_hyperboloid', num_surfaces=2, num_points=4)
+    print(gen_graph.target)
+    epochs=1
+    batch_size=10
+    for epoch in range(epochs):
+        print("\n########## epoch " + str(epoch+1) + " ##########")
+        gen_trainig = gen_graph.train_generator( batch_size = batch_size )
+        counter = 0
+        for gt_graph, set_feature, in_graph in gen_trainig:
+            print("---- batch ----")
+            print("gt_graph: ", gt_graph)
+            print("set_feature: ", set_feature)
+
+            print("in_graph.shape: ", in_graph.shape)
+            print("gt_graph.shape: ", gt_graph.shape)
+            print("set_feature.shape: ", set_feature.shape)
+
+            nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature)
+            graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
+            print("graphs_tuple.shape : ", graphs_tuple.map(lambda a: a if a is None else a.shape, fields=graphs.ALL_FIELDS))
+            saveable_string = graphs_tuple_dumps(graphs_tuple)
+
+            with open("surf/surf{}.json".format(epoch+1), 'w') as file:
+                file.write(saveable_string)
+
+            #Check:
+            graphs_tuple_test = graphs_tuple_loads(saveable_string)
+            test_graph, test_feature = graphs_tuples_to_darwin_batches(graphs_tuple_test)
+            check_condition = np.all(test_graph == gt_graph) and np.all(set_feature == test_feature)
+            if check_condition:
+                print("All functions working")
+
+
+            '''
+            for k in range(gt_graph.shape[0]):
+                counter += 1
+                draw_surface(name='surf/surf_'+str(counter), points_coord=set_feature[k], adj=gt_graph[k])
+                feature_perm, adj_perm = gen_graph.csurf.get_permutations(feature=set_feature[k], adj=gt_graph[k], num_perm=3)
+                print("feature_perm", feature_perm.shape)
+                print("adj_perm", adj_perm.shape)
+                for j in range(len(feature_perm)):
+                    draw_surface(name='surf/surf'+str(counter)+'_'+str(j+1), points_coord=feature_perm[j], adj=adj_perm[j])
+            '''
+            break

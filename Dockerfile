@@ -12,6 +12,6 @@ RUN pip install \
         sklearn \
         graph_nets
 
-RUN sudo apt-get install python3-tk
+RUN apt-get install -y python3-tk
 
 CMD ["/bin/bash"]

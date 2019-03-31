@@ -388,7 +388,7 @@ def test_create_community():
   np.random.shuffle(graphs_create)
   feature_graphs, pos, graphs = generate_feature_list(graphs_create, num_perm)
   feature_graphs[:], pos[:], graphs[:] = shuffle_list(list(feature_graphs), list(pos), list(graphs))
-  
+
   #graphs = np.asarray(graphs, dtype=np.float32)
   for i in range(len(graphs)):
     graphs[i] = nx.to_numpy_matrix(graphs[i])
@@ -399,7 +399,7 @@ def test_create_community():
   print("feature_graphs[0].shape: ", feature_graphs[0].shape)
   counter = 0
   draw_graph(G_arr=graphs[0:40], row=2, col=2, pos=feature_graphs[0:40], fname='comm/comm_'+str(counter))
-  
+
 #test_create_community()
 
 class GenerateDataGraph:
@@ -429,8 +429,8 @@ class GenerateDataGraph:
         self.graphs_test = graphs[int(proportion[0] * self.num_graphs):] #0.8
         #save_graph_list(self.graphs_test, 'gt.dat')
 
-        for i in range(self.num_graphs):
-          graphs[i] = nx.to_numpy_matrix(graphs[i])
+        # for i in range(self.num_graphs):
+        #   graphs[i] = nx.to_numpy_matrix(graphs[i])
 
         n_training = 0.96 #0.8
         n_eval = 0.02 #0.1
@@ -489,7 +489,7 @@ class GenerateDataGraph:
                 files_feature = db_feature[offset:offset+batch_size]
                 files_input_graph = db_input_graph[offset:offset+batch_size]
 
-                yield np.array( files_graph ), np.array( files_feature ), np.array( files_input_graph )
+                yield files_graph, np.array( files_feature ), np.array( files_input_graph )
         return gen_batch
 
 def save_graph(name, points_coord, adj, dim):
@@ -523,7 +523,8 @@ def save_graph(name, points_coord, adj, dim):
         f_edge.write("\n")
   f_edge.close()
 
-
+from graph_nets import utils_np
+np.set_printoptions(threshold=np.nan)
 def test_batch_gen():
   #['caveman_2', 'caveman_4']
   gen_graph = GenerateDataGraph(type_dataset='caveman_4', num_perm=10)
@@ -535,15 +536,18 @@ def test_batch_gen():
     counter = 0
     for gt_graph, set_feature, in_graph in gen_trainig:
       print("---- batch ----")
-      print("gt_graph.shape: ", gt_graph.shape)
+      #print("gt_graph.shape: ", gt_graph.shape)
       print("set_feature.shape: ", set_feature.shape)
       print("in_graph.shape: ", in_graph.shape)
-      draw_graph(G_arr=gt_graph, row=2, col=2, pos=set_feature, fname='comm/comm_'+str(counter))
-
+      #draw_graph(G_arr=gt_graph, row=2, col=2, pos=set_feature, fname='comm/comm_'+str(counter))
+      for g in gt_graph:
+        nx.set_node_attributes(G = g, name ="features", values = 0)
+        nx.set_edge_attributes(G = g, name ="features", values = 0)
+      graph_tuple = utils_np.networkxs_to_graphs_tuple(gt_graph)
+      print (graph_tuple)
       #for k in range(len(gt_graph)):
       #  counter += 1
       #  save_graph(name='comm/comm_'+str(counter), points_coord=set_feature[k], adj=gt_graph[k], dim=2)
       break
 
 test_batch_gen()
-

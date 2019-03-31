@@ -9,6 +9,9 @@ RUN pip install \
         numpy \
         scikit-image \
         tflearn \
+        sklearn \
         graph_nets
+
+RUN sudo apt-get install python3-tk
 
 CMD ["/bin/bash"]

@@ -9,13 +9,15 @@ This project generates a CPU or a GPU minimal expansion on the `tensorflow` imag
 CPU version:
 
 ```bash
-docker build --pull --build-arg BASE_IMAGE=tensorflow/tensorflow:latest-py3 -t "tf:latest" -f "Dockerfile" .
+docker build --pull --build-arg BASE_IMAGE=tensorflow/tensorflow:latest-py3 \
+      -t "tf:latest" -f "Dockerfile" .
 ```
 
 GPU version:
 
 ```bash
-docker build --pull --build-arg BASE_IMAGE=tensorflow/tensorflow:latest-gpu-py3 -t "tf:gpu-latest" -f "Dockerfile" .
+docker build --pull --build-arg BASE_IMAGE=tensorflow/tensorflow:latest-gpu-py3 \
+      -t "tf:gpu-latest" -f "Dockerfile" .
 ```
 
 ## Execute scripts
@@ -23,18 +25,21 @@ docker build --pull --build-arg BASE_IMAGE=tensorflow/tensorflow:latest-gpu-py3 
 The following script will share the source code directories `-v=$(pwd)/..:$(pwd)/..`. We set the current directory as our working directory `-w=$(pwd)`.
 
 CPU version:
-
-    docker run -it --rm \
+```bash
+docker run -it --rm \
       --env DISPLAY=$DISPLAY --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
       -v=$(pwd)/..:$(pwd)/.. -w=$(pwd) \
       tf:latest
+```
 
 GPU version:
 
-    nvidia-docker run -it --rm \
+```bash
+nvidia-docker run -it --rm \
       --env DISPLAY=$DISPLAY --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
       -v=$(pwd)/..:$(pwd)/.. -w=$(pwd) \
       tf:gpu-latest
+```
 
 # Context
 ## Introdução

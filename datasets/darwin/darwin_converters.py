@@ -1,4 +1,3 @@
-#@title Converters to/from Darwin's format  { form-width: "20%" }
 from graph_nets import blocks
 from graph_nets import graphs
 from graph_nets import modules
@@ -11,8 +10,7 @@ import numpy as np
 import sonnet as snt
 import tensorflow as tf
 
-
-def darwin_batches_to_networkx_graphs(graphs, node_features, surface_type):
+def darwin_batches_to_networkx_graphs(graphs, node_features):
     '''
     Args:
         graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
@@ -21,16 +19,11 @@ def darwin_batches_to_networkx_graphs(graphs, node_features, surface_type):
     Returns:
         graphs_tuple : GraphTuple from graph_nets
     '''
-    global SURFACE_TYPES
     nxGraphs = []
     for graph, node_feature in zip(graphs, node_features):
         nxGraph = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
-        nx.set_node_attributes(G = nxGraph, name ="pos", values = {n : val for n,val in enumerate(node_feature)})
-        nx.set_edge_attributes(G = nxGraph, name ="distance", values = {
-            (u,v) : np.linalg.norm(node_feature[u] - node_feature[v])
-            for (u,v) in nxGraph.edges
-        })
-        nxGraph.graph['type'] = to_one_hot(SURFACE_TYPES.index(surface_type), len(SURFACE_TYPES))
+        nx.set_node_attributes(G = nxGraph, name ="features", values = {n : val for n,val in enumerate(node_feature)})
+        nx.set_edge_attributes(G = nxGraph, name ="features", values = 0)
         nxGraphs.append(nxGraph)
 
     return nxGraphs

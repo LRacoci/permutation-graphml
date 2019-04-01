@@ -1,3 +1,4 @@
+#@title Converters to/from Darwin's format  { form-width: "20%" }
 from graph_nets import blocks
 from graph_nets import graphs
 from graph_nets import modules

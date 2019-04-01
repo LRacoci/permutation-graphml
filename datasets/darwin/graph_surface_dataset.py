@@ -1,4 +1,4 @@
-#@title Darwin's Surfaces { form-width: "20%" }
+#@title Graph Surfaces  { form-width: "20%" }
 from scipy.spatial import Delaunay
 import numpy as np
 from numpy import sin, cos, sqrt
@@ -432,8 +432,30 @@ class SurfaceNumpyGenerator:
 
 
 
+    list_edges = []
+    #plot lines from edges
+    for i in range(adj.shape[0]):
+        for j in range(i,adj.shape[1]):
+            if adj[i][j]:
+                line = plt3d.art3d.Line3D(
+                    [x[i],x[j]], 
+                    [y[i],y[j]], 
+                    [z[i],z[j]], 
+                    linewidth=0.4, 
+                    c="black", 
+                    alpha=1.
+                )
+                list_edges.append((i,j))
+                ax.add_line(line)
 
-def test_SurfaceNumpyGenerator():
+    ax.scatter(x,y,z, marker='.', s=15, c="blue", alpha=0.6)
+    #ax.view_init(azim=25)
+    plt.axis('off')
+    plt.show()
+    plt.savefig(name+'.png', dpi=200)
+    plt.clf()
+
+def test_create_surface():
     num_surfaces = 18
     num_points = 400
     num_perm = 3

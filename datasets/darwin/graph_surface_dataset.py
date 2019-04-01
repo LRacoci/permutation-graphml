@@ -1,3 +1,4 @@
+#@title Graph Surfaces  { form-width: "20%" }
 from scipy.spatial import Delaunay
 import numpy as np
 from numpy import sin, cos, sqrt
@@ -464,8 +465,14 @@ def draw_surface(name, points_coord, adj):
     for i in range(adj.shape[0]):
         for j in range(i,adj.shape[1]):
             if adj[i][j]:
-                line = plt3d.art3d.Line3D([x[i],x[j]], [y[i],y[j]], [z[i],z[j]], \
-                    linewidth=0.4, c="black", alpha=1.)
+                line = plt3d.art3d.Line3D(
+                    [x[i],x[j]], 
+                    [y[i],y[j]], 
+                    [z[i],z[j]], 
+                    linewidth=0.4, 
+                    c="black", 
+                    alpha=1.
+                )
                 list_edges.append((i,j))
                 ax.add_line(line)
 

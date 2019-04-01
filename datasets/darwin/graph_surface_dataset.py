@@ -13,9 +13,15 @@ np.random.seed(seed=int(time.time()))
 #np.random.seed(123) #default seed = 7
 eps = 1e-7
 
-# ----------------------------------------------------------------------------------------
-# Author: Darwin Saire Pilco
-# ----------------------------------------------------------------------------------------
+SURFACE_TYPES = [
+    'elliptic_paraboloid',
+    'saddle',
+    'torus',
+    'ellipsoid',
+    'elliptic_hyperboloid',
+    'another'
+]
+
 
 def feature_standardization(X):
     '''set_feature.shape: (-1,N,dim)'''
@@ -243,7 +249,7 @@ class SurfaceNumpyGenerator:
         #return euclidean coord
         return np.dot(T, mtrx)[:3,:]
 
-    def generate_func(self, type, num_surfaces, num_perm):
+    def generate_func(self, surface_type, num_surfaces, num_perm):
         list_point_features = []
         list_adj = []
         num_perm -= 1 # because the first object dont has permutation
@@ -251,16 +257,16 @@ class SurfaceNumpyGenerator:
         #list_adj_perm = []
         #list_point_features = np.zeros((num_surfaces,self.num_points,3))
         #list_adj = np.zeros((num_surfaces,self.num_points,self.num_points))
-        print("dataset " + type)
+        print("dataset " + surface_type)
 
         for i in range(num_surfaces):
             #create surface points
-            if type == 'elliptic_paraboloid':
+            if surface_type == 'elliptic_paraboloid':
                 a, b = np.random.uniform(low=1.0, high=3.0, size=(2))
                 c = np.random.uniform(low=3.0, high=7.0, size=(1))
                 #print("a, b: ", a, b)
                 x,y,z,tri = self.elliptic_paraboloid_func(a=a, b=b, c=c, num_points=self.num_points)
-            elif type == 'cone':
+            elif surface_type == 'cone':
                 h = np.random.uniform(low=3.0, high=7.0, size=(1))
                 r = np.random.uniform(low=1.0, high=4.0, size=(1))
                 x,y,z,tri = self.cone_func(h=h, r=r, num_points=self.num_points)
@@ -268,7 +274,7 @@ class SurfaceNumpyGenerator:
                 #c = np.random.uniform(low=4.0, high=7.0, size=(1))
                 #print("a, b: ", a, b)
                 #x,y,z,tri = self.cone_func(a=a, b=b, c=c, num_points=self.num_points)
-            elif type == 'saddle':
+            elif surface_type == 'saddle':
                 #a, b = np.random.random(2)*10+1.0
                 a, b = np.random.uniform(low=0.5, high=3.0, size=(2))
                 a = -a if (np.random.randint(2) > 0) else a
@@ -276,22 +282,22 @@ class SurfaceNumpyGenerator:
                 h = np.random.uniform(low=3.0, high=8.0, size=(1))
                 #print("a, b: ", a, b)
                 x,y,z,tri = self.saddle_func(a=a, b=b, h=h, num_points=self.num_points)
-            elif type == 'torus':
+            elif surface_type == 'torus':
                 R = np.random.uniform(low=2.5, high=5.0, size=(1))
                 r = np.random.uniform(low=1.0, high=2.0, size=(1))
                 x,y,z,tri = self.torus_func(r=r, R=R, num_points=self.num_points)
-            elif type == 'cylinder':
+            elif surface_type == 'cylinder':
                 r = np.random.uniform(low=1.0, high=5.0, size=(1))
                 h = np.random.uniform(low=1.0, high=8.0, size=(1))
                 x,y,z,tri = self.cylinder_func(r=r, h=h, num_points=self.num_points)
-            elif type == 'ellipsoid':
+            elif surface_type == 'ellipsoid':
                 a, b, c = np.random.uniform(low=1.0, high=10.0, size=(3))
                 x,y,z,tri = self.ellipsoid_func(a=a, b=b, c=c, num_points=self.num_points)
-            elif type == 'elliptic_hyperboloid':
+            elif surface_type == 'elliptic_hyperboloid':
                 a, b = np.random.uniform(low=1.0, high=3.0, size=(2))
                 c = np.random.uniform(low=2.0, high=4.0, size=(1))
                 x,y,z,tri = self.elliptic_hyperboloid_func(a=a, b=b, c=c, num_points=self.num_points)
-            elif type == 'ding_dong':
+            elif surface_type == 'ding_dong':
                 h = np.random.uniform(low=1.0, high=8.0, size=(1))
                 r = np.random.uniform(low=1.0, high=2.0, size=(1))
                 x,y,z,tri = self.ding_dong_func(r=r, h=h, num_points=self.num_points)
@@ -447,42 +453,16 @@ class SurfaceNumpyGenerator:
 
 
 
-def draw_surface(name, points_coord, adj):
-    '''points_coord.shape: (num_points, coord=3),
-        adj.shape:(num_points,num_points)'''
-    fig = plt.figure(figsize=(12,10))
-    # Plot the surface.
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-    #ax.plot_trisurf(triang, z,  cmap=cm.jet)#cmap=plt.cm.CMRmap)
 
-    x = points_coord[:,0]
-    y = points_coord[:,1]
-    z = points_coord[:,2]
 
-    list_edges = []
-    #plot lines from edges
-    for i in range(adj.shape[0]):
-        for j in range(i,adj.shape[1]):
-            if adj[i][j]:
-                line = plt3d.art3d.Line3D([x[i],x[j]], [y[i],y[j]], [z[i],z[j]], \
-                    linewidth=0.4, c="black", alpha=1.)
-                list_edges.append((i,j))
-                ax.add_line(line)
 
-    ax.scatter(x,y,z, marker='.', s=15, c="blue", alpha=0.6)
-    #ax.view_init(azim=25)
-    plt.axis('off')
-    plt.show()
-    plt.savefig(name+'.png', dpi=200)
-    plt.clf()
-
-def test_create_surface():
+def test_SurfaceNumpyGenerator():
     num_surfaces = 18
     num_points = 400
     num_perm = 3
     csurf = SurfaceNumpyGenerator(num_surfaces,num_points)
     types=['elliptic_paraboloid','saddle','torus','ellipsoid','elliptic_hyperboloid','another']
-    list_point, list_adj = csurf.generate_func(type='torus',num_surfaces=num_surfaces, num_perm=num_perm)
+    list_point, list_adj = csurf.generate_func(surface_type='torus',num_surfaces=num_surfaces, num_perm=num_perm)
     print("len(list_point): ", len(list_point))
     print("len(list_adj): ", len(list_adj))
 
@@ -494,14 +474,13 @@ def test_create_surface():
     for i in range(len(list_point)):#(num_surfaces):
         draw_surface(name='surf/surf'+str(i), points_coord=list_point[i], adj=list_adj[i])
 
-#test_create_surface()
+#test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-
-    def __init__(self,
-        type_dataset='saddle',
-        num_surfaces=100,
-        num_points=100,
+    def __init__(self, 
+        type_dataset='saddle', 
+        num_surfaces=100, 
+        num_points=100, 
         proportion=(0.8, 0.2),
         proportion_edge=[8./10, 2./10],
         type_Adj='empty'
@@ -521,7 +500,7 @@ class GenerateDataGraphSurface:
             list_adj_test=[]
             for t in range(len(types)):
                 print("types: ", types[t])
-                list_point_t, list_adj_t= self.csurf.generate_func(type=types[t],num_surfaces=subset, num_perm=num_perm)
+                list_point_t, list_adj_t= self.csurf.generate_func(surface_type=types[t],num_surfaces=subset, num_perm=num_perm)
                 list_point_train.extend(list_point_t[0:int(proportion[0]*subset)])
                 list_adj_train.extend(list_adj_t[0:int(proportion[0]*subset)])
                 list_point_test.extend(list_point_t[int(proportion[0]*subset):])
@@ -539,7 +518,7 @@ class GenerateDataGraphSurface:
             feature_graphs.extend(feature_graphs_test);
             graphs.extend(graphs_train); graphs.extend(graphs_test);
         else:
-            list_point, list_adj = self.csurf.generate_func(type=type_dataset,num_surfaces=num_surfaces, num_perm=num_perm)
+            list_point, list_adj = self.csurf.generate_func(surface_type=type_dataset,num_surfaces=num_surfaces, num_perm=num_perm)
             merge_point_and_adj = list(zip(list_point, list_adj))
             np.random.shuffle(merge_point_and_adj)
             feature_graphs, graphs = map(np.array, zip(*merge_point_and_adj))
@@ -554,7 +533,7 @@ class GenerateDataGraphSurface:
         X_std = std_scale.transform(X_features)
         feature_graphs = X_std.reshape(feature_graphs.shape[0],feature_graphs.shape[1],feature_graphs.shape[2])
 
-        #graph_args = create_graphs.Graph_Args(type=type_dataset)
+        #graph_args = create_graphs.Graph_Args(surface_type=type_dataset)
         #graphs_create = create_graphs.create(graph_args)
         #np.random.shuffle(graphs_create)
         self.num_graphs = len(list_point)#num_surfaces
@@ -574,7 +553,7 @@ class GenerateDataGraphSurface:
         graphs_train = graphs[0:int(proportion[0]*self.num_graphs)] #0.8
         graphs_validate = graphs[0:int(proportion[1]*self.num_graphs)] #0.2
 
-        #print("feature_test: ", type(feature_graphs) )
+        #print("feature_test: ", surface_type(feature_graphs) )
         feature_test = feature_graphs[int(proportion[0] * self.num_graphs):] #0.8
         #feature_test = np.array(feature_test)
         #shape_feature_test = feature_test.shape
@@ -628,13 +607,13 @@ class GenerateDataGraphSurface:
         print("num_val:", self.num_val)
         print("num_test:", self.num_test)
 
-    def generate_input_graphs( self, type, num_graphs, num_nodes, proportion=[8./10, 2./10] ):
+    def generate_input_graphs( self, surface_type, num_graphs, num_nodes, proportion=[8./10, 2./10] ):
         '''proportion: 8/10 no edges and 2/10 edges'''
         inputs_graphs = []
         for i in range(num_graphs):
-            if type == 'empty':
+            if surface_type == 'empty':
                 graph_i = np.identity(num_nodes)#np.zeros((num_nodes,num_nodes))
-            elif type == 'full':
+            elif surface_type == 'full':
                 graph_i = np.ones((num_nodes,num_nodes))
             else: #'aleatory' #p=propostion of 0's and 1's
                 graph_i = np.random.choice([0, 1], size=(num_nodes,num_nodes), p=proportion)

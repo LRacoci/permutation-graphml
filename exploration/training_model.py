@@ -158,12 +158,15 @@ def train():
             input_ph, 
             target_ph
         )
-        train_values = sess.run({
-            "step": step_op,
-            "target": target_ph,
-            "loss": loss_op_tr,
-            "outputs": output_ops_tr
-        }, feed_dict=feed_dict)
+        train_values = sess.run(
+            {
+                "step": step_op,
+                "target": target_ph,
+                "loss": loss_op_tr,
+                "outputs": output_ops_tr
+            }, 
+            feed_dict=feed_dict
+        )
 
         the_time = time.time()
         elapsed_since_last_log = the_time - last_log_time

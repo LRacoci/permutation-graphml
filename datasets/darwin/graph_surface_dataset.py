@@ -478,7 +478,6 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-
     def __init__(self, 
         type_dataset='saddle', 
         num_surfaces=100, 

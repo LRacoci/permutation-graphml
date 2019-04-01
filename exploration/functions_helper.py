@@ -106,42 +106,19 @@ def generate_surface_graphs(
     min_max_nodes = 4,
     geo_density = None
 ):
-    types=[
-        'elliptic_paraboloid',
-        'saddle',
-        'torus',
-        'ellipsoid',
-        'elliptic_hyperboloid',
-        'another'
-    ]
-    min_nodes, max_nodes = min_max_nodes
-    num_nodes = rand.randint(min_nodes, max_nodes)
-
-    gen_graph = GenerateDataGraphSurface(type_dataset='elliptic_hyperboloid', num_surfaces=num_examples, num_points=num_nodes)
+    num_nodes = rand.random_integers(*min_max_nodes)
+    surface_type = str(rand.choice(SURFACE_TYPES, 1)[0])
+    gen_graph = GenerateDataGraphSurface(type_dataset=surface_type, num_surfaces=batch_size, num_points=num_nodes)
     epochs=1
-    batch_size=10
     for epoch in range(epochs):
-        print("\n########## epoch " + str(epoch+1) + " ##########")
         gen_trainig = gen_graph.train_generator( batch_size = batch_size )
-        #counter = 0
-
+        counter = 0
         for gt_graph, set_feature, in_graph in gen_trainig:
-            print("---- batch ----")
-            print("gt_graph: ", gt_graph)
-            print("set_feature: ", set_feature)
-
-            print("in_graph.shape: ", in_graph.shape)
-            print("gt_graph.shape: ", gt_graph.shape)
-            print("set_feature.shape: ", set_feature.shape)
-
-    nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature)
-
-    # graphs_tuple = utils_np.networkxs_to_graphs_tuple(nxGraphs)
-    # print("graphs_tuple.shape : ", graphs_tuple.map(lambda a: a if a is None else a.shape, fields=graphs.ALL_FIELDS))
-    # saveable_string = graphs_tuple_dumps(graphs_tuple)
-    # with open("surf/surf{}.json".format(epoch+1), 'w') as file:
-    # 	file.write(saveable_string)
-    # break
+            print ("gt_graph.shape = ", gt_graph.shape)
+            print ("set_feature.shape = ", set_feature.shape)
+            print ("surface_type = ", surface_type)
+            nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature, surface_type)
+            return nxGraphs
 
     return nxGraphs
 

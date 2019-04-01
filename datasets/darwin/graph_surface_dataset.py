@@ -478,11 +478,10 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-
-    def __init__(self,
-        type_dataset='saddle',
-        num_surfaces=100,
-        num_points=100,
+    def __init__(self, 
+        type_dataset='saddle', 
+        num_surfaces=100, 
+        num_points=100, 
         proportion=(0.8, 0.2),
         proportion_edge=[8./10, 2./10],
         type_Adj='empty'

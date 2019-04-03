@@ -353,37 +353,13 @@ class SurfaceNumpyGenerator:
             #list_point_features[i] = T_mtrx.T
             #list_adj[i] = adj
 
-            perm_set = []#set()
-            #choose permutation without permutation
-            while len(perm_set) < num_perm:
-                index_perm = np.random.permutation(self.num_points)
-                is_repeat = False
-                for m in range(len(perm_set)):
-                    tmp_repeat = np.array_equal(perm_set[m], index_perm)
-                    is_repeat = is_repeat and tmp_repeat
-                if is_repeat == False:
-                    perm_set.append(index_perm)
-
-            for l in range(num_perm):
-                index = perm_set[l]
-                T_mtrx_tranp = T_mtrx.T
-
-                T_mtrx_perm = np.zeros_like(T_mtrx_tranp)
-                for x in range(self.num_points):
-                    T_mtrx_perm[index[x]] = T_mtrx_tranp[x]
-
-                adj_perm = np.zeros((self.num_points,self.num_points))
-
-                for x in range(self.num_points):
-                    for y in range(self.num_points):
-                        if adj[x][y] == 1. or adj[y][x] == 1.:
-                            adj_perm[index[x]][index[y]] = 1.#adj[x][y]
-                            adj_perm[index[y]][index[x]] = 1.
-
-                list_point_features.append(T_mtrx_perm)
-                list_adj.append(adj_perm)
-                #list_point_features_perm.append(T_mtrx_perm)
-                #list_adj_perm.append(adj_perm)
+            T_mtrx_perms, adj_perms = self.get_permutations(
+                feature = T_mtrx.T,
+                adj = adj,
+                num_perm = num_perm
+            )
+            list_point_features += list(T_mtrx_perms)
+            list_adj += list(adj_perms)
             
         return list_point_features, list_adj
 

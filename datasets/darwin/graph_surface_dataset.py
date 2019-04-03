@@ -353,7 +353,7 @@ class SurfaceNumpyGenerator:
             #list_point_features[i] = T_mtrx.T
             #list_adj[i] = adj
 
-            T_mtrx_perms, adj_perms = self.get_unique_permutations(
+            T_mtrx_perms, adj_perms = self.get_permutations(
                 feature = T_mtrx.T,
                 adj = adj,
                 num_perm = num_perm

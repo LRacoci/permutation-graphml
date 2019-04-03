@@ -23,14 +23,10 @@ def source_from_raw(raw):
 def target_from_raw(raw):
     target = nx.DiGraph()
     # Nodes
-    feature =  np.array([0.0])
-    fields = ('?',)
-    target.add_node(0, features=create_feature(feature, fields))
-    target.add_node(1, features=create_feature(feature, fields))
+    target.add_node(0, features=np.array([0.0]))
+    target.add_node(1, features=np.array([1.0]))
     # Edges
-    feature =  np.array([0.0])
-    fields = ('?',)
-    target.add_edge(0, 1, features=create_feature(feature, fields))
+    target.add_edge(0, 1, features=np.array([0.0]))
     target.graph['type'] = raw.graph['type']
     return target
 
@@ -82,15 +78,26 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         min_max_nodes,
         geo_density=geo_density
     )
+    print("raw_graphs:")
+    import json
+    print(
+        json.dumps(
+            [
+                to_dict_of_dicts(G)
+                for G in raw_graphs
+            ], 
+            indent = 4,
+            default = lambda o : str(o)
+        )
+    )
+    # Source
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     source_ph = utils_tf.placeholders_from_networkxs(
         source_graphs,
         force_dynamic_num_graphs=True
     )
-
+    # Target
     target_graphs = [target_from_raw(raw) for raw in raw_graphs]
-    print_graphs(target_graphs)
-
     target_ph = utils_tf.placeholders_from_networkxs(
         target_graphs,
         force_dynamic_num_graphs=True

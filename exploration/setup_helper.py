@@ -16,7 +16,7 @@ def source_from_raw(raw):
             sender, receiver, features=create_feature(feature, fields)
         )
 
-    source.graph["type"] = raw.graph["type"] * 0
+    source.graph["features"] = raw.graph["type"] * 0
 
     return source
 
@@ -27,7 +27,7 @@ def target_from_raw(raw):
     target.add_node(1, features=np.array([1.0]))
     # Edges
     target.add_edge(0, 1, features=np.array([0.0]))
-    target.graph['type'] = raw.graph['type']
+    target.graph['features'] = raw.graph['type']
     return target
 
 def generate_networkx_graphs(rand, num_examples, min_max_nodes, geo_density):
@@ -78,18 +78,6 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         min_max_nodes,
         geo_density=geo_density
     )
-    print("raw_graphs:")
-    import json
-    print(
-        json.dumps(
-            [
-                to_dict_of_dicts(G)
-                for G in raw_graphs
-            ], 
-            indent = 4,
-            default = lambda o : str(o)
-        )
-    )
     # Source
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     source_ph = utils_tf.placeholders_from_networkxs(
@@ -108,8 +96,7 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
 
 def create_loss_ops(target_op, output_ops):
     loss_ops = [
-        tf.losses.softmax_cross_entropy(target_op.nodes, output_op.nodes) +
-        tf.losses.softmax_cross_entropy(target_op.edges, output_op.edges)
+        tf.losses.softmax_cross_entropy(target_op.globals, output_op.globals)
         for output_op in output_ops
     ]
     return loss_ops

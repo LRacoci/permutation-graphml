@@ -402,71 +402,47 @@ class SurfaceNumpyGenerator:
             #list_point_features[i] = T_mtrx.T
             #list_adj[i] = adj
 
-            perm_set = []#set()
-            #choose permutation without permutation
-            while len(perm_set) < num_perm:
-                index_perm = np.random.permutation(self.num_points)
-                is_repeat = False
-                for m in range(len(perm_set)):
-                    tmp_repeat = np.array_equal(perm_set[m], index_perm)
-                    is_repeat = is_repeat and tmp_repeat
-                if is_repeat == False:
-                    perm_set.append(index_perm)
-
-            for l in range(num_perm):
-                index = perm_set[l]
-                T_mtrx_tranp = T_mtrx.T
-
-                T_mtrx_perm = np.zeros_like(T_mtrx_tranp)
-                for x in range(self.num_points):
-                    T_mtrx_perm[index[x]] = T_mtrx_tranp[x]
-
-                adj_perm = np.zeros((self.num_points,self.num_points))
-
-                for x in range(self.num_points):
-                    for y in range(self.num_points):
-                        if adj[x][y] == 1. or adj[y][x] == 1.:
-                            adj_perm[index[x]][index[y]] = 1.#adj[x][y]
-                            adj_perm[index[y]][index[x]] = 1.
-
-                list_point_features.append(T_mtrx_perm)
-                list_adj.append(adj_perm)
-                #list_point_features_perm.append(T_mtrx_perm)
-                #list_adj_perm.append(adj_perm)
+            T_mtrx_perms, adj_perms = self.get_unique_permutations(
+                feature = T_mtrx.T,
+                adj = adj,
+                num_perm = num_perm
+            )
+            list_point_features += list(T_mtrx_perms)
+            list_adj += list(adj_perms)
             
         return list_point_features, list_adj
 
-    def get_permutations(self, feature, adj, num_perm):
-        perm_set = []#set()
+    def get_unique_permutations(self, feature, adj, num_perm):
+        '''
+        feature.shape =  (num_points, num_features)
+        adj.shape =  (num_points, num_points)
+        '''
+        assert(feature.shape[0] == adj.shape[0] == adj.shape[1])
+        num_points = feature.shape[0]
+
+        perm_set = set()
         #choose permutation without permutation
         while len(perm_set) < num_perm:
-            index_perm = np.random.permutation(self.num_points)
-            is_repeat = False
-            for m in range(len(perm_set)):
-                tmp_repeat = np.array_equal(perm_set[m], index_perm)
-                is_repeat = is_repeat and tmp_repeat
-            if is_repeat == False:
-                perm_set.append(index_perm)
+            index_perm = tuple(np.random.permutation(num_points))
+            perm_set.add(index_perm)
 
         list_point_features_perm = []
         list_adj_perm = []
-        for l in range(num_perm):
-            index = perm_set[l]
-            T_mtrx_tranp = feature#T_mtrx.T
+        for index in perm_set:
+            index = np.array(index)
+            feature_perm = np.zeros_like(feature)
+            for x in range(num_points):
+                feature_perm[index[x]] = feature[x]
 
-            T_mtrx_perm = np.zeros_like(T_mtrx_tranp)
-            for x in range(self.num_points):
-                T_mtrx_perm[index[x]] = T_mtrx_tranp[x]
+            adj_perm = np.zeros((num_points,num_points))
 
-            adj_perm = np.zeros((self.num_points,self.num_points))
-
-            for x in range(self.num_points):
-                for y in range(self.num_points):
+            for x in range(num_points):
+                for y in range(num_points):
                     if adj[x][y] == 1. or adj[y][x] == 1.:
                         adj_perm[index[x]][index[y]] = 1.#adj[x][y]
                         adj_perm[index[y]][index[x]] = 1.
 
-            list_point_features_perm.append(T_mtrx_perm)
+            list_point_features_perm.append(feature_perm)
             list_adj_perm.append(adj_perm)
         return np.array(list_point_features_perm), np.array(list_adj_perm)
 
@@ -527,7 +503,7 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-
+    
     def __init__(self, 
         type_dataset='saddle', 
         num_surfaces=100, 
@@ -768,12 +744,12 @@ def save_H(name, features):
 
 #@title Google Drive  { form-width: "20%" }
 import os
-'''
+
 class GoogleDrive():
   def __init__(self, path = "drive"):
     # Install the PyDrive wrapper & import libraries.
     # This only needs to be done once in a notebook.
-    #!pip install -U -q PyDrive
+    !pip install -U -q PyDrive
     from pydrive.auth import GoogleAuth
     from pydrive.drive import GoogleDrive
     from google.colab import auth
@@ -817,11 +793,11 @@ class GoogleDrive():
         dFile.SetContentFile(path)
         dFile.Upload()
         print('Uploaded file with ID {}'.format(dFile.get('id')))
+      
 # Test
 g = GoogleDrive()
 #g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN", "UniqueGraphs")
 g.save("drive/UniqueGraphs")
-'''   
 
 #@title Helper functions  { form-width: "20%" }
 
@@ -1288,7 +1264,7 @@ for j, graph in enumerate(graphs):
     for u in points_coord_dict:
         points_coord.append(points_coord_dict[len(points_coord)])
     points_coord = np.array(points_coord)                   
-    print(points_coord)
+    #print(points_coord)
     x = points_coord[:,0]
     y = points_coord[:,1]
     z = points_coord[:,2]
@@ -1311,69 +1287,33 @@ for j, graph in enumerate(graphs):
 #@title Helper functions for setup training { form-width: "30%" }
 
 def source_from_raw(raw):
-    """Returns the graph with source feature vector for training.
-
-    Args:
-        raw: An `nx.DiGraph` instance.
-
-    Returns:
-        The source `nx.DiGraph` instance.
-
-    Raises:
-        ValueError: unknown node type
-    """
-
     source = nx.DiGraph()
     # Nodes
-    fields = ("weight", "solution")
+    fields = ('pos',)
     for node, feature in raw.nodes(data=True):
+        #print(feature)
         source.add_node(
             node, features=create_feature(feature, fields)
         )
     # Edges
-    fields = (DISTANCE_WEIGHT_NAME, "solution")
+    fields = ('distance',)
     for receiver, sender, feature in raw.edges(data=True):
-        #print (feature)
         source.add_edge(
             sender, receiver, features=create_feature(feature, fields)
         )
 
-    source.graph["features"] = np.array([0.0])
+    source.graph["features"] = raw.graph["type"] * 0
 
     return source
 
 def target_from_raw(raw):
-    """Returns the graph with target feature vector for training.
-
-    Args:
-        raw: An `nx.DiGraph` instance.
-
-    Returns:
-        The target `nx.DiGraph` instance.
-
-    Raises:
-        ValueError: unknown node type
-    """
-
     target = nx.DiGraph()
-
-    fields = ("solution",)
-    solution_length = 0
-    for node, feature in raw.nodes(data=True):
-        target.add_node(node, features=to_one_hot(
-            create_feature(feature, fields).astype(int), 2
-        )[0])
-        solution_length += int(feature["solution"])
-
-    solution_length /= raw.number_of_nodes()
-
-    for receiver, sender, feature in raw.edges(data=True):
-        target.add_edge(sender, receiver, features=to_one_hot(
-            create_feature(feature, fields).astype(int), 2
-        )[0])
-
-    target.graph["features"] = np.array([solution_length], dtype=float)
-
+    # Nodes
+    target.add_node(0, features=np.array([0.0]))
+    target.add_node(1, features=np.array([1.0]))
+    # Edges
+    target.add_edge(0, 1, features=np.array([0.0]))
+    target.graph['features'] = raw.graph['type']
     return target
 
 def generate_networkx_graphs(rand, num_examples, min_max_nodes, geo_density):
@@ -1424,15 +1364,14 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         min_max_nodes,
         geo_density=geo_density
     )
+    # Source
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     source_ph = utils_tf.placeholders_from_networkxs(
         source_graphs,
         force_dynamic_num_graphs=True
     )
-
+    # Target
     target_graphs = [target_from_raw(raw) for raw in raw_graphs]
-    print_graphs(target_graphs)
-
     target_ph = utils_tf.placeholders_from_networkxs(
         target_graphs,
         force_dynamic_num_graphs=True
@@ -1443,8 +1382,7 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
 
 def create_loss_ops(target_op, output_ops):
     loss_ops = [
-        tf.losses.softmax_cross_entropy(target_op.nodes, output_op.nodes) +
-        tf.losses.softmax_cross_entropy(target_op.edges, output_op.edges)
+        tf.losses.softmax_cross_entropy(target_op.globals, output_op.globals)
         for output_op in output_ops
     ]
     return loss_ops
@@ -1531,7 +1469,7 @@ input_ph, target_ph = create_placeholders(
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(edge_output_size=2, node_output_size=2)
+model = models.EncodeProcessDecode(global_output_size=6)
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -1683,9 +1621,10 @@ for iteration in range(last_iteration, num_training_iterations):
         batch_size_tr,
         num_nodes_min_max_tr,
         theta,
-        input_ph,
-        target_ph
+        source_ph = input_ph,
+        target_ph = target_ph
     )
+    #print(feed_dict)
     train_values = sess.run(
         {
             "step": step_op,

@@ -33,12 +33,17 @@ solution_edge_style = "solid" #@param ["solid", "dashed", "dotted", "dashdot"]
 seed = 5  #@param{type: 'integer'}
 rand = np.random.RandomState(seed=seed)
 
+num_examples = 4  #@param{type: 'integer'}
 
-num_examples = 2  #@param{type: 'integer'}
 
+min_nodes = 34 #@param {type:"slider", min:4, max:64, step:1}
+max_nodes = 36 #@param {type:"slider", min:4, max:64, step:1}
 
-min_nodes = 4 #@param {type:"slider", min:4, max:64, step:1}
-max_nodes = 5 #@param {type:"slider", min:4, max:64, step:1}
+theta = 12  #@param{type:"slider", min:4, max:64, step:1}
+#@markdown Large values (1000+) make trees. Try 20-60 for good non-trees.
+
+horizontal_length = 20 #@param{type: 'integer'}
+graphs_per_column = 2 #@param{type: 'integer'}
 
 min_max_nodes = (min_nodes, max_nodes)
 
@@ -46,4 +51,38 @@ graphs = generate_raw_graphs(
     rand,
     num_examples,
     min_max_nodes,
+    theta
 )
+
+num = min(num_examples, 16)
+size = horizontal_length/graphs_per_column
+w = graphs_per_column
+h = int(np.ceil(num / w))
+fig = plt.figure(40, figsize=(w * size, h * size))
+fig.clf()
+for j, graph in enumerate(graphs):
+    ax = fig.add_subplot(h, w, j + 1, projection='3d')
+    points_coord_dict = nx.get_node_attributes(graph,'pos')
+    points_coord = []
+    for u in points_coord_dict:
+        points_coord.append(points_coord_dict[len(points_coord)])
+    points_coord = np.array(points_coord)                   
+    #print(points_coord)
+    x = points_coord[:,0]
+    y = points_coord[:,1]
+    z = points_coord[:,2]
+
+    list_edges = []
+    #plot lines from edges
+    for u,v in graph.edges:
+        line = plt3d.art3d.Line3D(
+            [x[u],x[v]], 
+            [y[u],y[v]], 
+            [z[u],z[v]], 
+            linewidth=0.4, 
+            c="black", 
+            alpha=1.
+        )
+        ax.add_line(line)
+
+    ax.scatter(x,y,z, marker='.', s=15, c="blue", alpha=0.6)

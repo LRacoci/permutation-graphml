@@ -7,21 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/117omOA8SKFNuLr6h6sI5BKIjxgT-bwp8
 """
 
-#@title ##### License
-# Copyright 2018 The GraphNets Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or  implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ============================================================================
 
 #@title Imports  { form-width: "20%" }
 
@@ -307,7 +292,6 @@ class SurfaceNumpyGenerator:
         #list_adj_perm = []
         #list_point_features = np.zeros((num_surfaces,self.num_points,3))
         #list_adj = np.zeros((num_surfaces,self.num_points,self.num_points))
-        print("dataset " + surface_type)
 
         for i in range(num_surfaces):
             #create surface points
@@ -478,10 +462,6 @@ class SurfaceNumpyGenerator:
         return feature_graphs, graphs
 
 
-
-
-
-
 def test_SurfaceNumpyGenerator():
     num_surfaces = 18
     num_points = 400
@@ -625,14 +605,6 @@ class GenerateDataGraphSurface:
 
         self.target = target_array
 
-        print("DATASET:", type_dataset)
-        print("num_graphs:", self.num_graphs)
-        print("num_nodes by graph:", self.num_nodes)
-        #print("num_edges by graph:", self.num_edges)
-        print("num_features by node:", self.num_features)
-        print("num_training:", self.num_training)
-        print("num_val:", self.num_val)
-        print("num_test:", self.num_test)
 
     def generate_input_graphs( self, surface_type, num_graphs, num_nodes, proportion=[8./10, 2./10] ):
         '''proportion: 8/10 no edges and 2/10 edges'''
@@ -840,7 +812,7 @@ def create_feature(feature, fields):
     return np.hstack([np.array(feature[field], dtype=float) for field in fields])
     
 def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):  
-    num_nodes = rand.random_integers(*min_max_nodes)
+    num_nodes = rand.randint(*min_max_nodes)
     surface_type = str(rand.choice(SURFACE_TYPES, 1)[0])
     gen_graph = GenerateDataGraphSurface(type_dataset=surface_type, num_surfaces=batch_size, num_points=num_nodes)
     epochs=1
@@ -848,9 +820,6 @@ def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):
         gen_trainig = gen_graph.train_generator( batch_size = batch_size )
         counter = 0
         for gt_graph, set_feature, in_graph in gen_trainig:
-            print ("gt_graph.shape = ", gt_graph.shape)
-            print ("set_feature.shape = ", set_feature.shape)
-            print ("surface_type = ", surface_type)
             nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature, surface_type)
             return nxGraphs
 
@@ -1256,7 +1225,6 @@ size = horizontal_length/graphs_per_column
 w = graphs_per_column
 h = int(np.ceil(num / w))
 fig = plt.figure(40, figsize=(w * size, h * size))
-fig.clf()
 for j, graph in enumerate(graphs):
     ax = fig.add_subplot(h, w, j + 1, projection='3d')
     points_coord_dict = nx.get_node_attributes(graph,'pos')
@@ -1283,6 +1251,8 @@ for j, graph in enumerate(graphs):
         ax.add_line(line)
 
     ax.scatter(x,y,z, marker='.', s=15, c="blue", alpha=0.6)
+
+fig.show()
 
 #@title Helper functions for setup training { form-width: "30%" }
 

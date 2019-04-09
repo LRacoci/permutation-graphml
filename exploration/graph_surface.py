@@ -717,8 +717,9 @@ def save_H(name, features):
 #@title Google Drive  { form-width: "20%" }
 import os
 
+'''
 class GoogleDrive():
-  def __init__(self, path = "drive"):
+      def __init__(self, path = "drive"):
     # Install the PyDrive wrapper & import libraries.
     # This only needs to be done once in a notebook.
     !pip install -U -q PyDrive
@@ -765,11 +766,11 @@ class GoogleDrive():
         dFile.SetContentFile(path)
         dFile.Upload()
         print('Uploaded file with ID {}'.format(dFile.get('id')))
-      
 # Test
 g = GoogleDrive()
 #g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN", "UniqueGraphs")
 g.save("drive/UniqueGraphs")
+'''   
 
 #@title Helper functions  { form-width: "20%" }
 
@@ -1439,7 +1440,7 @@ input_ph, target_ph = create_placeholders(
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(global_output_size=6)
+model = models.EncodeProcessDecode(global_output_size=len(SURFACE_TYPES))
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -1716,6 +1717,7 @@ w = num_steps_to_plot + 1
 fig = plt.figure(101, figsize=(18, h * 3))
 fig.clf()
 ncs = []
+'''
 for j, (graph, target, output) in enumerate(zip(raw_graphs, targets, outputs)):
     if j >= h:
         break
@@ -1760,3 +1762,4 @@ for j, (graph, target, output) in enumerate(zip(raw_graphs, targets, outputs)):
                 step_indices[-1] + 1
             )
         )
+'''

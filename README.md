@@ -41,6 +41,15 @@ nvidia-docker run -it --rm \
       tf:gpu-latest
 ```
 
+## Run
+
+To test and execute the scripts run:
+
+```bash
+$ cd exploration
+$ python graph_surface.py
+```
+
 # Context
 ## Introdução
 

@@ -393,7 +393,7 @@ class SurfaceNumpyGenerator:
             )
             list_point_features += list(T_mtrx_perms)
             list_adj += list(adj_perms)
-            
+
         return list_point_features, list_adj
 
     def get_unique_permutations(self, feature, adj, num_perm):
@@ -483,13 +483,13 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-    
-    def __init__(self, 
-        type_dataset='saddle', 
-        num_surfaces=100, 
-        num_points=100, 
+
+    def __init__(self,
+        type_dataset='saddle',
+        num_surfaces=100,
+        num_points=100,
         proportion=(0.8, 0.2),
-        proportion_edge=[8./10, 2./10], 
+        proportion_edge=[8./10, 2./10],
         type_Adj='empty'
     ):
         '''proportion: for training and testing stage
@@ -521,7 +521,7 @@ class GenerateDataGraphSurface:
             np.random.shuffle(merge_point_and_adj_test)
             feature_graphs_test, graphs_test = zip(*merge_point_and_adj_test)
 
-            feature_graphs.extend(feature_graphs_train); 
+            feature_graphs.extend(feature_graphs_train);
             feature_graphs.extend(feature_graphs_test);
             graphs.extend(graphs_train); graphs.extend(graphs_test);
         else:
@@ -578,7 +578,7 @@ class GenerateDataGraphSurface:
         n_training = 0.8 #0.96
         n_eval = 0.1 #0.02
         n_test = 0.1 #0.02
-        
+
         graphs_test = graphs[int(self.num_graphs*n_training)+int(self.num_graphs*n_eval):] #0.2
         graphs_train = graphs[0:int(self.num_graphs*n_training)] #0.8
         graphs_validate = graphs[int(self.num_graphs*n_training):int(self.num_graphs*n_training)+int(self.num_graphs*n_eval)] #0.2
@@ -744,21 +744,21 @@ class GoogleDrive():
     files = self._drive.ListFile({'q': "'{}' in parents".format(parentId)}).GetList()
     if not parent:
       parent = parentId
-    
+
     path = '/'.join([self.path, parent])
     if not os.path.isdir(path):
       os.mkdir(path)
-    
+
     for file in files:
       title = file['title']
       path = '/'.join([self.path, parent, title])
       print ("Saving {} in {}".format(title, path))
       file.GetContentFile(path)
-  
+
   def save(self, source = "results", target = "1Twv_oBTB_P9aQ7VWinMOwsLScj6N8Hfc"):
     if not os.path.isdir(source):
       print ("Please provide a valid path to save in google drive")
-    
+
     for title in os.listdir(source):
       path = '/'.join([source, title])
       if not os.path.isdir(path):
@@ -770,7 +770,7 @@ class GoogleDrive():
 g = GoogleDrive()
 #g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN", "UniqueGraphs")
 g.save("drive/UniqueGraphs")
-'''   
+'''
 
 #@title Helper functions  { form-width: "20%" }
 
@@ -811,8 +811,8 @@ def to_one_hot(indices, max_value, axis=-1):
 
 def create_feature(feature, fields):
     return np.hstack([np.array(feature[field], dtype=float) for field in fields])
-    
-def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):  
+
+def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):
     num_nodes = rand.randint(*min_max_nodes)
     surface_type = str(rand.choice(SURFACE_TYPES, 1)[0])
     gen_graph = GenerateDataGraphSurface(type_dataset=surface_type, num_surfaces=batch_size, num_points=num_nodes)
@@ -1232,7 +1232,7 @@ for j, graph in enumerate(graphs):
     points_coord = []
     for u in points_coord_dict:
         points_coord.append(points_coord_dict[len(points_coord)])
-    points_coord = np.array(points_coord)                   
+    points_coord = np.array(points_coord)
     #print(points_coord)
     x = points_coord[:,0]
     y = points_coord[:,1]
@@ -1242,11 +1242,11 @@ for j, graph in enumerate(graphs):
     #plot lines from edges
     for u,v in graph.edges:
         line = plt3d.art3d.Line3D(
-            [x[u],x[v]], 
-            [y[u],y[v]], 
-            [z[u],z[v]], 
-            linewidth=0.4, 
-            c="black", 
+            [x[u],x[v]],
+            [y[u],y[v]],
+            [z[u],z[v]],
+            linewidth=0.4,
+            c="black",
             alpha=1.
         )
         ax.add_line(line)
@@ -1347,7 +1347,7 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         target_graphs,
         force_dynamic_num_graphs=True
     )
-    
+
     return source_ph, target_ph
 
 
@@ -1412,7 +1412,7 @@ def make_all_runnable_in_session(*args):
 
 tf.reset_default_graph()
 
-seed = 2 
+seed = 2
 rand = np.random.RandomState(seed=seed)
 
 # Model parameters.
@@ -1519,7 +1519,7 @@ def create_feed_dict(
     source_graphs = utils_np.networkxs_to_graphs_tuple(sources)
     target_graphs = utils_np.networkxs_to_graphs_tuple(targets)
     feed_dict = {
-        source_ph: source_graphs, 
+        source_ph: source_graphs,
         target_ph: target_graphs
     }
     return feed_dict, raw_graphs
@@ -1566,6 +1566,25 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
     correct = np.mean(np.concatenate(cs, axis=0))
     solved = np.mean(np.stack(ss))
     return correct, solved
+
+def compute_accuracy_globals(target, output):
+    """Calculate model accuracy based on the global features.
+
+    Returns number of completely solved graphs (100% correct predictions).
+
+    Args:
+        target: A `graphs.GraphsTuple` that contains the target graph.
+        output: A `graphs.GraphsTuple` that contains the output graph.
+
+    Returns:
+        solved: A `float` fraction of graphs that are completely correctly labeled.
+    """
+    corrects = 0
+    for result in range(len(target.globals)):
+        if (target.globals[result] == output.globals[result]).all():
+            corrects += 1
+    solved = corrects/len(target.globals)
+    return solved
 
 #@title Run training  { form-width: "30%" }
 
@@ -1619,16 +1638,28 @@ for iteration in range(last_iteration, num_training_iterations):
             },
             feed_dict=feed_dict
         )
-        correct_tr, solved_tr = compute_accuracy(
+        # correct_tr, solved_tr = compute_accuracy(
+        #     train_values["target"],
+        #     train_values["outputs"][-1],
+        #     use_edges=True
+        # )
+        # correct_ge, solved_ge = compute_accuracy(
+        #     test_values["target"],
+        #     test_values["outputs"][-1],
+        #     use_edges=True
+        # )
+        solved_tr = compute_accuracy_globals(
             train_values["target"],
-            train_values["outputs"][-1],
-            use_edges=True
+            train_values["outputs"][-1]
         )
-        correct_ge, solved_ge = compute_accuracy(
+        solved_ge = compute_accuracy_globals(
             test_values["target"],
-            test_values["outputs"][-1],
-            use_edges=True
+            test_values["outputs"][-1]
         )
+
+        correct_tr = 0
+        correct_ge = 0
+
         elapsed = time.time() - start_time
         losses_tr.append(train_values["loss"])
         corrects_tr.append(correct_tr)

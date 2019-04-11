@@ -8,6 +8,8 @@ from graph_nets import modules
 from graph_nets import utils_tf
 import sonnet as snt
 
+latent_size = 16
+num_layers = 2
 
 def make_mlp_model(latent_size, num_layers):
     """Instantiates a new MLP, followed by LayerNorm.
@@ -32,9 +34,9 @@ class MLPGraphIndependent(snt.AbstractModule):
         super(MLPGraphIndependent, self).__init__(name=name)
         with self._enter_variable_scope():
             self._network = modules.GraphIndependent(
-            edge_model_fn=make_mlp_model(latent_size, num_layers),
-            node_model_fn=make_mlp_model(latent_size, num_layers),
-            global_model_fn=make_mlp_model(latent_size,num_layers))
+            edge_model_fn=make_mlp_model,
+            node_model_fn=make_mlp_model,
+            global_model_fn=make_mlp_model)
 
     def _build(self, inputs):
         return self._network(inputs)
@@ -49,8 +51,8 @@ class MLPRelationNetwork(snt.AbstractModule):
         super(MLPRelationNetwork, self).__init__(name=name)
         with self._enter_variable_scope():
             self._network = modules.RelationNetwork(
-                edge_model_fn=make_mlp_model(latent_size,num_layers),
-                global_model_fn=make_mlp_model(latent_size,num_layers))
+                edge_model_fn=make_mlp_model,
+                global_model_fn=make_mlp_model)
 
     def _build(self, inputs):
         return self._network(inputs)
@@ -65,9 +67,9 @@ class MLPGraphNetwork(snt.AbstractModule):
                 name="MLPGraphNetwork"):
         super(MLPGraphNetwork, self).__init__(name=name)
         with self._enter_variable_scope():
-            self._network = modules.GraphNetwork(make_mlp_model(latent_size,num_layers),
-                                                make_mlp_model(latent_size,num_layers),
-                                                make_mlp_model(latent_size,num_layers))
+            self._network = modules.GraphNetwork(make_mlp_model,
+                                                make_mlp_model,
+                                                make_mlp_model)
 
     def _build(self, inputs):
         return self._network(inputs)
@@ -110,7 +112,7 @@ class EncodeProcessDecode(snt.AbstractModule):
             self._encoder = MLPRelationNetwork()
             self._core = MLPGraphNetwork()
             self._decoder = MLPRelationNetwork()
-        
+
         # Transforms the outputs into the appropriate shapes.
         if edge_output_size is None:
             edge_fn = None

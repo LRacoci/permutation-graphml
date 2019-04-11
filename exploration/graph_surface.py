@@ -393,7 +393,7 @@ class SurfaceNumpyGenerator:
             )
             list_point_features += list(T_mtrx_perms)
             list_adj += list(adj_perms)
-
+            
         return list_point_features, list_adj
 
     def get_unique_permutations(self, feature, adj, num_perm):
@@ -483,13 +483,13 @@ def test_SurfaceNumpyGenerator():
 #test_SurfaceNumpyGenerator()
 
 class GenerateDataGraphSurface:
-
-    def __init__(self,
-        type_dataset='saddle',
-        num_surfaces=100,
-        num_points=100,
+    
+    def __init__(self, 
+        type_dataset='saddle', 
+        num_surfaces=100, 
+        num_points=100, 
         proportion=(0.8, 0.2),
-        proportion_edge=[8./10, 2./10],
+        proportion_edge=[8./10, 2./10], 
         type_Adj='empty'
     ):
         '''proportion: for training and testing stage
@@ -521,7 +521,7 @@ class GenerateDataGraphSurface:
             np.random.shuffle(merge_point_and_adj_test)
             feature_graphs_test, graphs_test = zip(*merge_point_and_adj_test)
 
-            feature_graphs.extend(feature_graphs_train);
+            feature_graphs.extend(feature_graphs_train); 
             feature_graphs.extend(feature_graphs_test);
             graphs.extend(graphs_train); graphs.extend(graphs_test);
         else:
@@ -578,7 +578,7 @@ class GenerateDataGraphSurface:
         n_training = 0.8 #0.96
         n_eval = 0.1 #0.02
         n_test = 0.1 #0.02
-
+        
         graphs_test = graphs[int(self.num_graphs*n_training)+int(self.num_graphs*n_eval):] #0.2
         graphs_train = graphs[0:int(self.num_graphs*n_training)] #0.8
         graphs_validate = graphs[int(self.num_graphs*n_training):int(self.num_graphs*n_training)+int(self.num_graphs*n_eval)] #0.2
@@ -714,12 +714,12 @@ def save_H(name, features):
     '''features.shape: (num_points, dim)'''
     np.savetxt(name+'_feature.csv', features, delimiter=",", fmt='%10.6f')
 
+'''
 #@title Google Drive  { form-width: "20%" }
 import os
 
-'''
 class GoogleDrive():
-      def __init__(self, path = "drive"):
+        def __init__(self, path = "drive"):
     # Install the PyDrive wrapper & import libraries.
     # This only needs to be done once in a notebook.
     !pip install -U -q PyDrive
@@ -736,32 +736,32 @@ class GoogleDrive():
     self._drive = GoogleDrive(gauth)
     self.path = path
     if os.path.isdir(path):
-      print("{} already exists".format(path))
+        print("{} already exists".format(path))
     else:
-      os.mkdir(path)
+        os.mkdir(path)
 
-  def load(self, parentId, parent):
+    def load(self, parentId, parent):
     files = self._drive.ListFile({'q': "'{}' in parents".format(parentId)}).GetList()
     if not parent:
-      parent = parentId
-
+        parent = parentId
+    
     path = '/'.join([self.path, parent])
     if not os.path.isdir(path):
-      os.mkdir(path)
-
+        os.mkdir(path)
+    
     for file in files:
-      title = file['title']
-      path = '/'.join([self.path, parent, title])
-      print ("Saving {} in {}".format(title, path))
-      file.GetContentFile(path)
-
-  def save(self, source = "results", target = "1Twv_oBTB_P9aQ7VWinMOwsLScj6N8Hfc"):
+        title = file['title']
+        path = '/'.join([self.path, parent, title])
+        print ("Saving {} in {}".format(title, path))
+        file.GetContentFile(path)
+    
+    def save(self, source = "results", target = "1Twv_oBTB_P9aQ7VWinMOwsLScj6N8Hfc"):
     if not os.path.isdir(source):
-      print ("Please provide a valid path to save in google drive")
-
+        print ("Please provide a valid path to save in google drive")
+    
     for title in os.listdir(source):
-      path = '/'.join([source, title])
-      if not os.path.isdir(path):
+        path = '/'.join([source, title])
+        if not os.path.isdir(path):
         dFile = self._drive.CreateFile({'title': title, "parents": [{"id": target}]})
         dFile.SetContentFile(path)
         dFile.Upload()
@@ -770,7 +770,7 @@ class GoogleDrive():
 g = GoogleDrive()
 #g.load("1s5tKKGpwkL7jSCqD96oiMMEnxeG0SIxN", "UniqueGraphs")
 g.save("drive/UniqueGraphs")
-'''
+'''   
 
 #@title Helper functions  { form-width: "20%" }
 
@@ -811,8 +811,8 @@ def to_one_hot(indices, max_value, axis=-1):
 
 def create_feature(feature, fields):
     return np.hstack([np.array(feature[field], dtype=float) for field in fields])
-
-def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):
+    
+def generate_raw_graphs(rand, batch_size, min_max_nodes, geo_density):  
     num_nodes = rand.randint(*min_max_nodes)
     surface_type = str(rand.choice(SURFACE_TYPES, 1)[0])
     gen_graph = GenerateDataGraphSurface(type_dataset=surface_type, num_surfaces=batch_size, num_points=num_nodes)
@@ -1232,7 +1232,7 @@ for j, graph in enumerate(graphs):
     points_coord = []
     for u in points_coord_dict:
         points_coord.append(points_coord_dict[len(points_coord)])
-    points_coord = np.array(points_coord)
+    points_coord = np.array(points_coord)                   
     #print(points_coord)
     x = points_coord[:,0]
     y = points_coord[:,1]
@@ -1242,11 +1242,11 @@ for j, graph in enumerate(graphs):
     #plot lines from edges
     for u,v in graph.edges:
         line = plt3d.art3d.Line3D(
-            [x[u],x[v]],
-            [y[u],y[v]],
-            [z[u],z[v]],
-            linewidth=0.4,
-            c="black",
+            [x[u],x[v]], 
+            [y[u],y[v]], 
+            [z[u],z[v]], 
+            linewidth=0.4, 
+            c="black", 
             alpha=1.
         )
         ax.add_line(line)
@@ -1347,7 +1347,7 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         target_graphs,
         force_dynamic_num_graphs=True
     )
-
+    
     return source_ph, target_ph
 
 
@@ -1362,6 +1362,135 @@ def create_loss_ops(target_op, output_ops):
 def make_all_runnable_in_session(*args):
     """Lets an iterable of TF graphs be output from a session as NP graphs."""
     return [utils_tf.make_runnable_in_session(a) for a in args]
+
+#@title Model definition { form-width: "20%" }
+
+# Copyright 2018 The GraphNets Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or  implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+"""Model architectures for the demos."""
+
+import sonnet as snt
+
+NUM_LAYERS = 2  # Hard-code number of layers in the edge/node/global models.
+LATENT_SIZE = 16  # Hard-code latent layer sizes for demos.
+
+
+def make_mlp_model():
+    """Instantiates a new MLP, followed by LayerNorm.
+
+    The parameters of each new MLP are not shared with others generated by
+    this function.
+
+    Returns:
+        A Sonnet module which contains the MLP and LayerNorm.
+    """
+    return snt.Sequential([
+            snt.nets.MLP([LATENT_SIZE] * NUM_LAYERS, activate_final=True),
+            snt.LayerNorm()
+    ])
+
+
+class MLPGraphIndependent(snt.AbstractModule):
+    """GraphIndependent with MLP edge, node, and global models."""
+
+    def __init__(self, name="MLPGraphIndependent"):
+        super(MLPGraphIndependent, self).__init__(name=name)
+        with self._enter_variable_scope():
+            self._network = modules.GraphIndependent(
+                edge_model_fn=make_mlp_model,
+                node_model_fn=make_mlp_model,
+                global_model_fn=make_mlp_model
+            )
+
+    def _build(self, inputs):
+        return self._network(inputs)
+
+
+class MLPGraphNetwork(snt.AbstractModule):
+    """GraphNetwork with MLP edge, node, and global models."""
+
+    def __init__(self, name="MLPGraphNetwork"):
+        super(MLPGraphNetwork, self).__init__(name=name)
+        with self._enter_variable_scope():
+            self._network = modules.GraphNetwork(make_mlp_model, make_mlp_model, make_mlp_model)
+
+    def _build(self, inputs):
+        return self._network(inputs)
+
+
+class EncodeProcessDecode(snt.AbstractModule):
+    """Full encode-process-decode model.
+    The model we explore includes three components:
+    - An "Encoder" graph net, which independently encodes the edge, node, and
+        global attributes (does not compute relations etc.).
+    - A "Core" graph net, which performs N rounds of processing (message-passing)
+        steps. The input to the Core is the concatenation of the Encoder's output
+        and the previous output of the Core (labeled "Hidden(t)" below, where "t" is
+        the processing step).
+    - A "Decoder" graph net, which independently decodes the edge, node, and
+        global attributes (does not compute relations etc.), on each message-passing
+        step.
+
+                          Hidden(t)   Hidden(t+1)
+                             |            ^
+                *---------*  |  *------*  |  *---------*
+                |         |  |  |      |  |  |         |
+      Input --->| Encoder |  *->| Core |--*->| Decoder |---> Output(t)
+                |         |---->|      |     |         |
+                *---------*     *------*     *---------*
+    """
+
+    def __init__(
+        self,
+        edge_output_size=None,
+        node_output_size=None,
+        global_output_size=None,
+        name="EncodeProcessDecode"
+    ):
+        super(EncodeProcessDecode, self).__init__(name=name)
+        self._encoder = MLPGraphIndependent()
+        self._core = MLPGraphNetwork()
+        self._decoder = MLPGraphIndependent()
+        # Transforms the outputs into the appropriate shapes.
+        if edge_output_size is None:
+            edge_fn = None
+        else:
+            edge_fn = lambda: snt.Linear(edge_output_size, name="edge_output")
+        if node_output_size is None:
+            node_fn = None
+        else:
+            node_fn = lambda: snt.Linear(node_output_size, name="node_output")
+        if global_output_size is None:
+            global_fn = None
+        else:
+            global_fn = lambda: snt.Linear(global_output_size, name="global_output")
+        with self._enter_variable_scope():
+            self._output_transform = modules.GraphIndependent(edge_fn, node_fn, global_fn)
+
+    def _build(self, input_op, num_processing_steps):
+        latent = self._encoder(input_op)
+        latent0 = latent
+        output_ops = []
+        for _ in range(num_processing_steps):
+            core_input = utils_tf.concat([latent0, latent], axis=1)
+            latent = self._core(core_input)
+            decoded_op = self._decoder(latent)
+            output_ops.append(self._output_transform(decoded_op))
+        return output_ops
+
+
 
 #@title Set up model training and evaluation  { form-width: "30%" }
 
@@ -1412,7 +1541,7 @@ def make_all_runnable_in_session(*args):
 
 tf.reset_default_graph()
 
-seed = 2
+seed = 2 
 rand = np.random.RandomState(seed=seed)
 
 # Model parameters.
@@ -1440,7 +1569,7 @@ input_ph, target_ph = create_placeholders(
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(global_output_size=len(SURFACE_TYPES))
+model = EncodeProcessDecode(global_output_size=len(SURFACE_TYPES))
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -1470,7 +1599,13 @@ try:
     sess.close()
 except NameError:
     pass
+
+saver = snt.get_saver(model)
 sess = tf.Session()
+
+
+#saver.restore(sess, "/tmp/model.ckpt")    
+
 sess.run(tf.global_variables_initializer())
 
 last_iteration = 0
@@ -1519,7 +1654,7 @@ def create_feed_dict(
     source_graphs = utils_np.networkxs_to_graphs_tuple(sources)
     target_graphs = utils_np.networkxs_to_graphs_tuple(targets)
     feed_dict = {
-        source_ph: source_graphs,
+        source_ph: source_graphs, 
         target_ph: target_graphs
     }
     return feed_dict, raw_graphs
@@ -1595,13 +1730,20 @@ def compute_accuracy_globals(target, output):
 # How much time between logging and printing the current results.
 log_every_seconds = 20
 
-print("# (iteration number), T (elapsed seconds), "
-            "Ltr (training loss), Lge (test/generalization loss), "
-            "Ctr (training fraction nodes/edges labeled correctly), "
-            "Str (training fraction examples solved correctly), "
-            "Cge (test/generalization fraction nodes/edges labeled correctly), "
-            "Sge (test/generalization fraction examples solved correctly)")
+labels = ["#","T","Ltr","Lge","Ctr","Str","Cge","Sge"]
+var_names = [
+    "iteration number",
+    "elapsed seconds",
+    "training loss",
+    "test/generalization loss",
+    "training fraction nodes/edges labeled correctly",
+    "training fraction examples solved correctly",
+    "test/generalization fraction nodes/edges labeled correctly",
+    "test/generalization fraction examples solved correctly"
+]
 
+print("\t".join(labels))
+print("\t".join(var_names))
 start_time = time.time()
 last_log_time = start_time
 for iteration in range(last_iteration, num_training_iterations):
@@ -1638,6 +1780,7 @@ for iteration in range(last_iteration, num_training_iterations):
             },
             feed_dict=feed_dict
         )
+        #save_path = saver.save(sess, "tmp/model.ckpt")
         # correct_tr, solved_tr = compute_accuracy(
         #     train_values["target"],
         #     train_values["outputs"][-1],
@@ -1668,13 +1811,17 @@ for iteration in range(last_iteration, num_training_iterations):
         corrects_ge.append(correct_ge)
         solveds_ge.append(solved_ge)
         logged_iterations.append(iteration)
-        print(
-            "# {:05d}, T {:.1f}, Ltr {:.4f}, Lge {:.4f}, Ctr {:.4f}, Str"
-            " {:.4f}, Cge {:.4f}, Sge {:.4f}".format(
-                iteration, elapsed, train_values["loss"], test_values["loss"],
-                correct_tr, solved_tr, correct_ge, solved_ge
-            )
-        )
+        row = [
+            iteration, 
+            elapsed, 
+            train_values["loss"], 
+            test_values["loss"],
+            correct_tr, 
+            solved_tr, 
+            correct_ge, 
+            solved_ge
+        ]
+        print("\t".join([str(e) for e in row]))
 
 #@title Visualize results  { form-width: "30%" }
 

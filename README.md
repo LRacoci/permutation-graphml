@@ -32,6 +32,8 @@ docker run -it --rm \
       tf:latest
 ```
 
+- Note: for executing on Windows, place the project folder on `C:/Users` and use `docker run -it --rm -v="/c/Users/permutation-graphml:/home/permutation-graphml" -w=/home/permutation-graphml tf:latest`.
+
 GPU version:
 
 ```bash

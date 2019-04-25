@@ -191,6 +191,7 @@ def generate_raw_graph(
 
     for u, v in graph.edges():
         graph[u][v][DISTANCE_WEIGHT_NAME] = rand.random_sample()
+    
     if seed != 0:
         perm = np.random.permutation(len(graph))
         graph = nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(perm)})
@@ -596,7 +597,7 @@ def target_from_raw(raw):
 
     return target
 
-def generate_networkx_graphs(rand, num_examples, min_max_nodes, geo_density):
+def generate_networkx_graphs(raw_graphs):
     """Generate graphs for training.
 
     Args:
@@ -613,15 +614,15 @@ def generate_networkx_graphs(rand, num_examples, min_max_nodes, geo_density):
         target_graphs: The list of output graphs.
         raw_graphs: The list of generated graphs.
     """
-    raw_graphs = generate_raw_graphs(rand, num_examples, min_max_nodes, geo_density)
+
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     target_graphs = [target_from_raw(raw) for raw in raw_graphs]
 
-    return source_graphs, target_graphs, raw_graphs
+    return source_graphs, target_graphs
 
 
 # pylint: disable=redefined-outer-name
-def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
+def create_placeholders(raw_graphs):
     """Creates placeholders for the model training and evaluation.
 
     Args:
@@ -638,14 +639,6 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
         target_ph: The target graph's placeholders, as a graph namedtuple.
     """
     # Create some example data for inspecting the vector sizes.
-    raw_graphs = [
-        generate_raw_graph(
-            rand,
-            min_max_nodes,
-            geo_density=geo_density
-        )
-        for _ in range(batch_size)
-    ]
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
     source_ph = utils_tf.placeholders_from_networkxs(
         source_graphs,
@@ -653,7 +646,6 @@ def create_placeholders(rand, batch_size, min_max_nodes, geo_density):
     )
 
     target_graphs = [target_from_raw(raw) for raw in raw_graphs]
-    print_graphs(target_graphs)
 
     target_ph = utils_tf.placeholders_from_networkxs(
         target_graphs,
@@ -734,7 +726,7 @@ num_processing_steps_ge = 10
 # Data / training parameters.
 num_training_iterations = 10000
 theta = 20  # Large values (1000+) make trees. Try 20-60 for good non-trees.
-batch_size_tr = 32
+batch_size_tr = 5
 batch_size_ge = 100
 # Number of nodes per graph sampled uniformly from this range.
 num_nodes_min_max_tr = (8, 17)
@@ -742,12 +734,8 @@ num_nodes_min_max_ge = (16, 33)
 
 # Data.
 # Input and target placeholders.
-input_ph, target_ph = create_placeholders(
-    rand,
-    batch_size_tr,
-    num_nodes_min_max_tr,
-    theta
-)
+raw_graphs = generate_raw_graphs(rand, num_examples, min_max_nodes, theta, seed)
+input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
@@ -796,14 +784,7 @@ solveds_ge = []
 #@title Helper functions for training { form-width: "30%" }
 
 # pylint: disable=redefined-outer-name
-def create_feed_dict(
-    rand,
-    batch_size,
-    min_max_nodes,
-    geo_density,
-    source_ph,
-    target_ph
-):
+def create_feed_dict(sources, targets,source_ph,target_ph):
     """Creates placeholders for the model training and evaluation.
 
     Args:
@@ -819,18 +800,11 @@ def create_feed_dict(
 
     Returns:
         feed_dict: The feed `dict` of source and target placeholders and data.
-        raw_graphs: The `dict` of raw networkx graphs.
     """
-    sources, targets, raw_graphs = generate_networkx_graphs(
-        rand,
-        batch_size,
-        min_max_nodes,
-        geo_density
-    )
     source_graphs = utils_np.networkxs_to_graphs_tuple(sources)
     target_graphs = utils_np.networkxs_to_graphs_tuple(targets)
     feed_dict = {source_ph: source_graphs, target_ph: target_graphs}
-    return feed_dict, raw_graphs
+    return feed_dict
 
 def compute_accuracy(target, output, use_nodes=False, use_edges=True):
     """Calculate model accuracy.
@@ -904,14 +878,9 @@ start_time = time.time()
 last_log_time = start_time
 for iteration in range(last_iteration, num_training_iterations):
     last_iteration = iteration
-    feed_dict, _ = create_feed_dict(
-        rand,
-        batch_size_tr,
-        num_nodes_min_max_tr,
-        theta,
-        input_ph,
-        target_ph
-    )
+    raw_graphs = generate_raw_graphs(rand, num_examples, min_max_nodes, theta, seed)
+    sources, targets = generate_networkx_graphs(raw_graphs)
+    feed_dict = create_feed_dict(sources, targets, input_ph, target_ph)
     train_values = sess.run({
             "step": step_op,
             "target": target_ph,
@@ -923,15 +892,35 @@ for iteration in range(last_iteration, num_training_iterations):
     elapsed_since_last_log = the_time - last_log_time
     if elapsed_since_last_log > log_every_seconds:
         last_log_time = the_time
-        feed_dict, raw_graphs = create_feed_dict(
-                rand, batch_size_ge, num_nodes_min_max_ge, theta, input_ph, target_ph)
+        perm = np.random.permutation(len(graph))
+        #Permute raw_graphs
+        raw_graphs2 = [
+            nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(perm)}) 
+            for graph in raw_graphs
+        ]
+        
+        sources2, targets2 = generate_networkx_graphs(raw_graphs2)
+        input_ph2, target_ph2 = create_placeholders(raw_graphs2)
+
+        # A list of outputs, one per processing step.
+        output_ops_ge2 = model(input_ph2, num_processing_steps_ge)
+
+        # Test/generalization loss.
+        loss_ops_ge2 = create_loss_ops(target_ph2, output_ops_ge2)
+        loss_op_ge2 = loss_ops_ge2[-1]  # Loss from final processing step.
+
+        # Lets an iterable of TF graphs be output from a session as NP graphs.
+        input_ph2, target_ph2 = make_all_runnable_in_session(input_ph2, target_ph2)
+
+        feed_dict2 = create_feed_dict(sources2, targets2, input_ph2, target_ph2)
+        
         test_values = sess.run(
             {
-                "target": target_ph,
-                "loss": loss_op_ge,
-                "outputs": output_ops_ge
+                "target": target_ph2,
+                "loss": loss_op_ge2,
+                "outputs": output_ops_ge2
             },
-            feed_dict=feed_dict
+            feed_dict=feed_dict2
         )
         correct_tr, solved_tr = compute_accuracy(
             train_values["target"],
@@ -1079,4 +1068,3 @@ for j, (graph, target, output) in enumerate(zip(raw_graphs, targets, outputs)):
                 step_indices[-1] + 1
             )
         )
-

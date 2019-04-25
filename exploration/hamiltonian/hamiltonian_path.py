@@ -827,10 +827,22 @@ def create_feed_dict(
         min_max_nodes,
         geo_density
     )
+    
     source_graphs = utils_np.networkxs_to_graphs_tuple(sources)
     target_graphs = utils_np.networkxs_to_graphs_tuple(targets)
     feed_dict = {source_ph: source_graphs, target_ph: target_graphs}
-    return feed_dict, raw_graphs
+    sources = [
+        nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))}) 
+        for graph in sources
+    ]
+    targets = [
+        nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))}) 
+        for graph in targets
+    ]
+    source_ge = utils_np.networkxs_to_graphs_tuple(sources)
+    target_ge = utils_np.networkxs_to_graphs_tuple(targets)
+    feed_dict_ge = {source_ph: source_ge, target_ph: target_ge}
+    return feed_dict, feed_dict_ge
 
 def compute_accuracy(target, output, use_nodes=False, use_edges=True):
     """Calculate model accuracy.
@@ -904,7 +916,7 @@ start_time = time.time()
 last_log_time = start_time
 for iteration in range(last_iteration, num_training_iterations):
     last_iteration = iteration
-    feed_dict, _ = create_feed_dict(
+    feed_dict, feed_dict_ge = create_feed_dict(
         rand,
         batch_size_tr,
         num_nodes_min_max_tr,
@@ -923,8 +935,7 @@ for iteration in range(last_iteration, num_training_iterations):
     elapsed_since_last_log = the_time - last_log_time
     if elapsed_since_last_log > log_every_seconds:
         last_log_time = the_time
-        feed_dict, raw_graphs = create_feed_dict(
-                rand, batch_size_ge, num_nodes_min_max_ge, theta, input_ph, target_ph)
+        feed_dict = feed_dict_ge
         test_values = sess.run(
             {
                 "target": target_ph,

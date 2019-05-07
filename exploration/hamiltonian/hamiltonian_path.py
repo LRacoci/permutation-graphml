@@ -136,8 +136,7 @@ def generate_raw_graph(
         graph[u][v][DISTANCE_WEIGHT_NAME] = rand.random_sample()
     
     if seed != 0:
-        perm = np.random.permutation(len(graph))
-        graph = nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(perm)})
+        graph = nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))})
 
     return graph
 
@@ -431,8 +430,8 @@ rand = np.random.RandomState(seed=seed)
 num_examples = 4  #@param{type: 'integer'}
 
 
-min_nodes = 8 #@param {type:"slider", min:4, max:64, step:1}
-max_nodes = 10 #@param {type:"slider", min:4, max:64, step:1}
+min_nodes = 50 #@param {type:"slider", min:4, max:64, step:1}
+max_nodes = 52 #@param {type:"slider", min:4, max:64, step:1}
 
 theta = 7.1  #@param{type:"slider", min:0.1, max:64, step:1}
 #@markdown Large values (1000+) make trees. Try 20-60 for good non-trees.
@@ -724,6 +723,10 @@ losses_ge = []
 corrects_ge = []
 solveds_ge = []
 
+losses_ge_permuted = []
+corrects_ge_permuted = []
+solveds_ge_permuted = []
+
 #@title Helper functions for training { form-width: "30%" }
 
 # pylint: disable=redefined-outer-name
@@ -798,7 +801,7 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
 # intermediate results by running the next cell (below). You can then resume
 # training by simply executing this cell again.
 
-PERMUTE_GRAPHS = False
+PERMUTE_GRAPHS = True
 NEW_GRAPHS = True
 
 # How much time between logging and printing the current results.
@@ -808,16 +811,43 @@ var_names = [
     "iteration number",
     "elapsed seconds",
     "training loss",
-    "test/generalization loss",
     "training fraction mse",
     "training fraction examples solved correctly",
+]
+var_names += [
+    "test/generalization loss",
     "test/generalization mse",
     "test/generalization fraction examples solved correctly"
 ]
 
+if PERMUTE_GRAPHS:
+    var_names += [
+        "test/generalization loss with permutations",
+        "test/generalization mse with permutations",
+        "test/generalization fraction examples solved correctly with permutations"
+    ]
+
 print("\t".join(var_names))
 
-labels = ["#","T","Ltr","Lge","Ctr","Str","Cge","Sge"]
+labels = [
+    "#",
+    "T",
+    "Ltr",
+    "Ctr",
+    "Str",
+]
+labels += [
+    "Lge",
+    "Cge",
+    "Sge"
+]
+if PERMUTE_GRAPHS:
+    labels += [
+        "Lpe",
+        "Cpe",
+        "Spe"
+    ]
+
 print("\t".join(labels))
 
 start_time = time.time()
@@ -833,73 +863,120 @@ for iteration in range(last_iteration, num_training_iterations):
             "loss": loss_op_tr,
             "outputs": output_ops_tr
     },
-                                                    feed_dict=feed_dict)
+    feed_dict=feed_dict)
+    
+    correct_tr, solved_tr = compute_accuracy(
+        train_values["target"],
+        train_values["outputs"][-1],
+        use_edges=True
+    )
+    losses_tr.append(train_values["loss"])
+    corrects_tr.append(correct_tr)
+    solveds_tr.append(solved_tr)
+
     the_time = time.time()
     elapsed_since_last_log = the_time - last_log_time
     if elapsed_since_last_log > log_every_seconds:
         last_log_time = the_time
         
         if NEW_GRAPHS or not PERMUTE_GRAPHS:
-            raw_graphs2 = generate_raw_graphs(rand, num_examples, min_max_nodes, theta, seed)
+            raw_graphs_test = generate_raw_graphs(rand, num_examples, min_max_nodes, theta, seed)
         
         #Permute raw_graphs
         if PERMUTE_GRAPHS:
-            raw_graphs2 = [
+            raw_graphs_permutation = [
                 nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))}) 
-                for graph in raw_graphs
+                for graph in raw_graphs_test
             ]
         
-        sources2, targets2 = generate_networkx_graphs(raw_graphs2)
-        input_ph2, target_ph2 = create_placeholders(raw_graphs2)
+            sources_permutation, targets_permutation = generate_networkx_graphs(raw_graphs_permutation)
+            input_ph_permutation, target_ph_permutation = create_placeholders(raw_graphs_permutation)
+
+            # A list of outputs, one per processing step.
+            output_ops_ge_permutation = model(input_ph_permutation, num_processing_steps_ge)
+
+            # Test/generalization loss.
+            loss_ops_ge_permutation = create_loss_ops(target_ph_permutation, output_ops_ge_permutation)
+            loss_op_ge_permutation = loss_ops_ge_permutation[-1]  # Loss from final processing step.
+
+            # Lets an iterable of TF graphs be output from a session as NP graphs.
+            input_ph_permutation, target_ph_permutation = make_all_runnable_in_session(input_ph_permutation, target_ph_permutation)
+
+            feed_dict_permutation = create_feed_dict(sources_permutation, targets_permutation, input_ph_permutation, target_ph_permutation)
+            
+            test_values_permutation = sess.run(
+                {
+                    "target_permutation": target_ph_permutation,
+                    "loss_permutation": loss_op_ge_permutation,
+                    "outputs_permutation": output_ops_ge_permutation
+                },
+                feed_dict=feed_dict_permutation
+            )
+            correct_ge_permutation, solved_ge_permutation = compute_accuracy(
+                test_values_permutation["target_permutation"],
+                test_values_permutation["outputs_permutation"][-1],
+                use_edges=True
+            )
+            losses_ge.append(test_values_permutation["loss_permutation"])
+            corrects_ge.append(correct_ge_permutation)
+            solveds_ge.append(solved_ge_permutation)
+        
+        sources_test, targets_test = generate_networkx_graphs(raw_graphs_test)
+        input_ph_test, target_ph_test = create_placeholders(raw_graphs_test)
 
         # A list of outputs, one per processing step.
-        output_ops_ge2 = model(input_ph2, num_processing_steps_ge)
+        output_ops_ge_test = model(input_ph_test, num_processing_steps_ge)
 
         # Test/generalization loss.
-        loss_ops_ge2 = create_loss_ops(target_ph2, output_ops_ge2)
-        loss_op_ge2 = loss_ops_ge2[-1]  # Loss from final processing step.
+        loss_ops_ge_test = create_loss_ops(target_ph_test, output_ops_ge_test)
+        loss_op_ge_test = loss_ops_ge_test[-1]  # Loss from final processing step.
 
         # Lets an iterable of TF graphs be output from a session as NP graphs.
-        input_ph2, target_ph2 = make_all_runnable_in_session(input_ph2, target_ph2)
+        input_ph_test, target_ph_test = make_all_runnable_in_session(input_ph_test, target_ph_test)
 
-        feed_dict2 = create_feed_dict(sources2, targets2, input_ph2, target_ph2)
+        feed_dict_test = create_feed_dict(sources_test, targets_test, input_ph_test, target_ph_test)
         
-        test_values = sess.run(
+        test_values_test = sess.run(
             {
-                "target": target_ph2,
-                "loss": loss_op_ge2,
-                "outputs": output_ops_ge2
+                "target_test": target_ph_test,
+                "loss_test": loss_op_ge_test,
+                "outputs_test": output_ops_ge_test
             },
-            feed_dict=feed_dict2
+            feed_dict=feed_dict_test
         )
-        correct_tr, solved_tr = compute_accuracy(
-            train_values["target"],
-            train_values["outputs"][-1],
+        correct_ge_test, solved_ge_test = compute_accuracy(
+            test_values_test["target_test"],
+            test_values_test["outputs_test"][-1],
             use_edges=True
         )
-        correct_ge, solved_ge = compute_accuracy(
-            test_values["target"],
-            test_values["outputs"][-1],
-            use_edges=True
-        )
+        losses_ge.append(test_values_test["loss_test"])
+        corrects_ge.append(correct_ge_test)
+        solveds_ge.append(solved_ge_test)
+
         elapsed = time.time() - start_time
-        losses_tr.append(train_values["loss"])
-        corrects_tr.append(correct_tr)
-        solveds_tr.append(solved_tr)
-        losses_ge.append(test_values["loss"])
-        corrects_ge.append(correct_ge)
-        solveds_ge.append(solved_ge)
+
+
         logged_iterations.append(iteration)
         row = [
             iteration, 
             elapsed, 
             train_values["loss"], 
-            test_values["loss"],
             correct_tr, 
             solved_tr, 
-            correct_ge, 
-            solved_ge
         ]
+        row += [
+            test_values_test["loss_test"],
+            correct_ge_test, 
+            solved_ge_test
+        ]
+
+        if PERMUTE_GRAPHS:
+            row += [
+                test_values_permutation["loss_permutation"],
+                correct_ge_permutation, 
+                solved_ge_permutation
+            ]
+            
         print("\t".join([str(e) for e in row]))
 
 #@title Visualize results  { form-width: "30%" }

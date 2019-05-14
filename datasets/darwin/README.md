@@ -48,9 +48,7 @@ Note: both datasets created graphs with permutations, besides, the number of per
 
 #### Geometric Figures
 
-This dataset contain 3 types of geometric figures (square, rectangle and line). Where we use different geometric transformations(scale, translate, rotate).
-
-It is possible to change the image size (H,W) and choose the type of geometric figure that contain each synthetic image.
+This dataset contain 3 types of geometric figures (square, rectangle and line). Where we use different geometric transformations(scale, translate, rotate). It is possible to change the image size (H,W) and choose the type of geometric figure that contain each synthetic image.<br> The code is show in `geometric_shape_dataset`.
 
 <table>
   <tr>

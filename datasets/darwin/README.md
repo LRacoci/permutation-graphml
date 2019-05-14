@@ -39,7 +39,6 @@ It is possible to change the number of individuals by community.
     <td><img src="imgs/comm_08.png" alt="non-trivial image" width="100%" align="center"></td>
   </tr>
 </table>
-
 The code is show in `graph_communty_dataset.py`. For show the samples run `test_create_community()` function.
 For feed your network use `test_batch_gen()` which show an example for do it using generators by batch.
 
@@ -55,12 +54,15 @@ It is possible to change the image size (H,W) and choose the type of geometric f
 
 <table>
   <tr>
-    <th><img src="imgs/img_0.png" alt="non-trivial image" width="100%" align="center"></th>
-    <th><img src="imgs/img_3.png" alt="non-trivial image" width="100%" align="center">
+    <th><img src="imgs/img_3.png" alt="non-trivial image" width="100%" align="center"></th>
+    <th><img src="imgs/img_6.png" alt="non-trivial image" width="100%" align="center">
   </tr>
   <tr>
-    <td><img src="imgs/img_4.png" alt="non-trivial image" width="100%" align="center"></td>
-    <td><img src="imgs/img_5.png" alt="non-trivial image" width="100%" align="center">
-  </td>
+    <td><img src="imgs/img_8.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="imgs/img_12.png" alt="non-trivial image" width="100%" align="center"></td>
+  </tr>
+  <tr>
+    <td><img src="imgs/img_16.png" alt="non-trivial image" width="100%" align="center"></td>
+    <td><img src="imgs/img_18.png" alt="non-trivial image" width="100%" align="center"></td>
   </tr>
 </table>

@@ -59,8 +59,16 @@ class CDisplay:
         plt.show()
         fig.savefig( name, dpi = fig.dpi )
 
-    def display_neighborhood( self, img_orig, img_pred, adj_original, adj_update, \
-                                img_h, img_w, name ):
+    def display_neighborhood(
+            self, 
+            img_orig, 
+            img_pred, 
+            adj_original, 
+            adj_update,
+            img_h, 
+            img_w, 
+            name 
+    ):
 
         fig = plt.figure()
         ax1 = plt.subplot(121)
@@ -101,41 +109,55 @@ class CDisplay:
 
 
         for h in range(img_h * img_w):
-            for w in range(h, img_h * img_w):
-                if( h != w ):
-                    hi = [ int(h / img_w), int(w / img_w) ]
-                    wi = [ int(h % img_w), int(w % img_w) ]
-                    #circle_t1 = plt.Circle((h, w), 0.1, color='r')
-                    #circle_t2 = plt.Circle((w, h), 0.1, color='r')
-                    #ax1.add_artist(circle_t1)
-                    #ax1.add_artist(circle_t2)
-                    if adj_original[h,w] >= epsilon:
-                        ax1.plot(wi, hi, linewidth=0.7, color='w', linestyle='-', \
-                            alpha=adj_original[h,w], marker='o', markersize=1.0 )
-                    if (adj_update[h,w] >= epsilon):
-                        ax2.plot(wi, hi, linewidth=0.7, color='r', linestyle='-', \
-                            alpha = round( adj_update[h,w], 2 ) )
+                for w in range(h, img_h * img_w):
+                        if( h != w ):
+                                hi = [ int(h / img_w), int(w / img_w) ]
+                                wi = [ int(h % img_w), int(w % img_w) ]
+                                #circle_t1 = plt.Circle((h, w), 0.1, color='r')
+                                #circle_t2 = plt.Circle((w, h), 0.1, color='r')
+                                #ax1.add_artist(circle_t1)
+                                #ax1.add_artist(circle_t2)
+                                if adj_original[h,w] >= epsilon:
+                                        ax1.plot(
+                                                wi, 
+                                                hi, 
+                                                linewidth=0.7, 
+                                                color='w', 
+                                                linestyle='-',
+                                                alpha=adj_original[h,w], 
+                                                marker='o', 
+                                                markersize=1.0 
+                                        )
+                                if (adj_update[h,w] >= epsilon):
+                                        ax2.plot(
+                                                wi, 
+                                                hi, 
+                                                linewidth=0.7, 
+                                                color='r', 
+                                                linestyle='-',
+                                                alpha = round( adj_update[h,w], 2 ) 
+                                                )
 
         #----ax2.set_title('Img Prediction', fontsize=9)
         #----ax2.imshow( img_pred.astype(np.uint8) )
         #----for h in range(img_h * img_w):
-            #----for w in range(h, img_h * img_w):
-                #----hi = [ int(h / img_w), int(w / img_w) ]
-                #----wi = [ int(h % img_w), int(w % img_w) ]
-                #circle_t1 = plt.Circle((h, w), 0.1, color='r')
-                #circle_t2 = plt.Circle((w, h), 0.1, color='r')
-                #ax2.add_artist(circle_t1)
-                #ax2.add_artist(circle_t2)
-                #if ( adj_update[h,w] < 1e-12 ): print ( adj_update[h,w] )
-                #abc = (adj_update[h,w]*10).astype(int)/10.0
-                #print ("-------> ", abc )
-                #----if (adj_update[h,w] >= epsilon):
-                    #print ("adj_update[h,w]: ", round( adj_update[h,w], 2 ) )
-                    #value_color = int(adj_update[h,w]*10)#min(1,int(adj_update[h,w]*10))
-                    #print( "--> ", value_color )
-                    #ax2.plot(hi, wi, linewidth=2.0, color=colors[value_color], linestyle='-')
-                    #----ax2.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
-                        #----alpha = round( adj_update[h,w], 2 ) )
+                #----for w in range(h, img_h * img_w):
+                        #----hi = [ int(h / img_w), int(w / img_w) ]
+                        #----wi = [ int(h % img_w), int(w % img_w) ]
+                        #circle_t1 = plt.Circle((h, w), 0.1, color='r')
+                        #circle_t2 = plt.Circle((w, h), 0.1, color='r')
+                        #ax2.add_artist(circle_t1)
+                        #ax2.add_artist(circle_t2)
+                        #if ( adj_update[h,w] < 1e-12 ): print ( adj_update[h,w] )
+                        #abc = (adj_update[h,w]*10).astype(int)/10.0
+                        #print ("-------> ", abc )
+                        #----if (adj_update[h,w] >= epsilon):
+                                #print ("adj_update[h,w]: ", round( adj_update[h,w], 2 ) )
+                                #value_color = int(adj_update[h,w]*10)#min(1,int(adj_update[h,w]*10))
+                                #print( "--> ", value_color )
+                                #ax2.plot(hi, wi, linewidth=2.0, color=colors[value_color], linestyle='-')
+                                #----ax2.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
+                                        #----alpha = round( adj_update[h,w], 2 ) )
 
         #plt.scatter(data2_x, data2_y, marker='s', c=data2[data2_x, data2_y])
         #for h in range(img_h):
@@ -147,8 +169,16 @@ class CDisplay:
         #plt.show()
         fig.savefig( name, dpi = 400 ) #dpi = fig.dpi,
 
-    def display_neighborhood2( self, img_orig, img_pred, adj_original, adj_update, \
-                                img_h, img_w, name ):
+    def display_neighborhood2( 
+        self, 
+        img_orig, 
+        img_pred, 
+        adj_original, 
+        adj_update, 
+        img_h, 
+        img_w, 
+        name 
+    ):
         '''Show the graph using the gt classifier as background(img_orig)'''
         fig = plt.figure()
         #plt.figure()
@@ -158,18 +188,18 @@ class CDisplay:
         h = []
         w = []
         for i in range(img_h):
-            for j in range(img_w):
-                h.append(i)
-                w.append(j)
+                for j in range(img_w):
+                        h.append(i)
+                        w.append(j)
         #plt.scatter(h, w, marker='o', c='r', markersize=0.2)
         plt.plot(h,w, 'o', c='r', markersize=3)
         for h in range(img_h * img_w):
-            for w in range(h, img_h * img_w):
-                if (adj_update[h,w] >= epsilon):
-                    hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
-                    wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
-                    plt.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
-                        alpha = round( adj_update[h,w], 2 ))
+                for w in range(h, img_h * img_w):
+                        if (adj_update[h,w] >= epsilon):
+                                hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
+                                wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
+                                plt.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
+                                        alpha = round( adj_update[h,w], 2 ))
         #---plt.plot([[1, 2], [2, 5]],[[5, 1], [3, 7]], linewidth=2.0, color='r', linestyle='-', alpha=0.5)
         fig.savefig( name, dpi = 100 ) #dpi = fig.dpi,
 
@@ -178,7 +208,6 @@ class CDisplay:
         plt.imshow( adj_update )#.astype(np.uint8) )
         plt.show()
         fig.savefig( name, dpi = fig.dpi )
-
 
 class GenerateAdjMatrx:
 
@@ -369,8 +398,16 @@ class GenerateAdjMatrx:
 
 
 class GenerateImg:
-
-    def __init__( self, dim_x = 10, dim_y = 10, type_dist="D4", proportion=(0.05, 0.2, 1000), option_shape='all', color_rand = True, noise_data = True ):
+    def __init__( 
+            self, 
+            dim_x = 10, 
+            dim_y = 10, 
+            type_dist="D4", 
+            proportion=(0.05, 0.2, 1000), 
+            option_shape='all', 
+            color_rand = True, 
+            noise_data = True 
+    ):
         ''' proportion (validation, test, rest is training) '''
         self.img_h = dim_x
         self.img_w = dim_y
@@ -383,40 +420,44 @@ class GenerateImg:
         self.type_dist = type_dist
 
     def func_perm(self, img_bgr_, img_ground_truth_, label_all_, A_gt_):
-      id_perm = np.random.permutation(self.img_h*self.img_w)
-      #id_perm_w = np.random.permutation(self.img_w)
-      A_gt = np.zeros_like(A_gt_)
-      for i in range(A_gt.shape[0]):
-        for j in range(A_gt.shape[1]):
-          if A_gt[i][j] == 1. or A_gt[j][i] == 1.:
-            A_gt[id_perm[i]][id_perm[j]] = 1.#A_gt[i][j]
-            A_gt[id_perm[j]][id_perm[i]] = 1.#A_gt[i][j]
+        id_perm = np.random.permutation(self.img_h*self.img_w)
+        #id_perm_w = np.random.permutation(self.img_w)
+        A_gt = np.zeros_like(A_gt_)
+        for i in range(A_gt.shape[0]):
+            for j in range(A_gt.shape[1]):
+                if A_gt[i][j] == 1. or A_gt[j][i] == 1.:
+                    A_gt[id_perm[i]][id_perm[j]] = 1.#A_gt[i][j]
+                    A_gt[id_perm[j]][id_perm[i]] = 1.#A_gt[i][j]
 
-      img_bgr = np.zeros((img_bgr_.shape[0],img_bgr_.shape[1], img_bgr_.shape[2]+2))
-      img_ground_truth = np.zeros_like(img_ground_truth_)
-      label_all = np.zeros_like(label_all_)
-      for node in range( A_gt.shape[0] ):
-        h = int(node / self.img_w)
-        w = node % self.img_w
-        h_perm = int(id_perm[node] / self.img_w)
-        w_perm = id_perm[node] % self.img_w
+        img_bgr = np.zeros((
+                img_bgr_.shape[0],
+                img_bgr_.shape[1], 
+                img_bgr_.shape[2]+2
+        ))
+        img_ground_truth = np.zeros_like(img_ground_truth_)
+        label_all = np.zeros_like(label_all_)
+        for node in range( A_gt.shape[0] ):
+            h = int(node / self.img_w)
+            w = node % self.img_w
+            h_perm = int(id_perm[node] / self.img_w)
+            w_perm = id_perm[node] % self.img_w
 
-        img_bgr[h_perm][w_perm] = img_bgr[h][w]
-        img_bgr[h_perm][w_perm][3] = h
-        img_bgr[h_perm][w_perm][4] = w
-        img_ground_truth[h_perm][w_perm] = img_ground_truth[h][w]
-        label_all[h_perm][w_perm] = label_all[h][w]
+            img_bgr[h_perm][w_perm] = img_bgr[h][w]
+            img_bgr[h_perm][w_perm][3] = h
+            img_bgr[h_perm][w_perm][4] = w
+            img_ground_truth[h_perm][w_perm] = img_ground_truth[h][w]
+            label_all[h_perm][w_perm] = label_all[h][w]
 
-      return img_bgr, img_ground_truth, label_all, A_gt
+        return img_bgr, img_ground_truth, label_all, A_gt
 
     def add_position(self, img_bgr_):
-      img_bgr = np.zeros((img_bgr_.shape[0],img_bgr_.shape[1], img_bgr_.shape[2]+2))
-      for h in range(img_bgr_.shape[0]):
-        for w in range(img_bgr_.shape[1]):
-          img_bgr[h][w][0:3] = img_bgr_[h][w]
-          img_bgr[h][w][3] = h
-          img_bgr[h][w][4] = w
-      return img_bgr
+        img_bgr = np.zeros((img_bgr_.shape[0],img_bgr_.shape[1], img_bgr_.shape[2]+2))
+        for h in range(img_bgr_.shape[0]):
+            for w in range(img_bgr_.shape[1]):
+                img_bgr[h][w][0:3] = img_bgr_[h][w]
+                img_bgr[h][w][3] = h
+                img_bgr[h][w][4] = w
+        return img_bgr
 
     def load_data(self):
         sample_img_train = []
@@ -424,45 +465,60 @@ class GenerateImg:
         sample_label_split_train = []
         sample_A_gt_train = []
         for n_train in range(self.num_training):
-          #img_bgr.shape = (10, 10, 3)
-          img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
-          img_bgr = self.add_position(img_bgr)
-          #img_bgr.shape perm = (10, 10, 5) [3-features+x+y]
-          #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
-          sample_img_train.append(img_bgr)
-          sample_label_train.append(img_ground_truth)
-          sample_label_split_train.append(label_all)
-          sample_A_gt_train.append(A_gt)
+            #img_bgr.shape = (10, 10, 3)
+            img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
+            img_bgr = self.add_position(img_bgr)
+            #img_bgr.shape perm = (10, 10, 5) [3-features+x+y]
+            #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
+            sample_img_train.append(img_bgr)
+            sample_label_train.append(img_ground_truth)
+            sample_label_split_train.append(label_all)
+            sample_A_gt_train.append(A_gt)
 
         sample_img_val = []
         sample_label_val = []
         sample_label_split_val = []
         sample_A_gt_val = []
         for n_val in range(self.num_val):
-          img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
-          img_bgr = self.add_position(img_bgr)
-          #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
-          sample_img_val.append(img_bgr)
-          sample_label_val.append(img_ground_truth)
-          sample_label_split_val.append(label_all)
-          sample_A_gt_val.append(A_gt)
+            img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
+            img_bgr = self.add_position(img_bgr)
+            #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
+            sample_img_val.append(img_bgr)
+            sample_label_val.append(img_ground_truth)
+            sample_label_split_val.append(label_all)
+            sample_A_gt_val.append(A_gt)
 
         sample_img_test = []
         sample_label_test = []
         sample_label_split_test = []
         sample_A_gt_test = []
         for n_test in range(self.num_test):
-          img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
-          img_bgr = self.add_position(img_bgr)
-          #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
-          sample_img_test.append(img_bgr)
-          sample_label_test.append(img_ground_truth)
-          sample_label_split_test.append(label_all)
-          sample_A_gt_test.append(A_gt)
+            img_bgr, img_ground_truth, label_all, A_gt = self.generate_syntetic_data(self.img_h, self.img_w,option_shape='all')
+            img_bgr = self.add_position(img_bgr)
+            #img_bgr, img_ground_truth, label_all, A_gt = self.func_perm(img_bgr, img_ground_truth, label_all, A_gt)
+            sample_img_test.append(img_bgr)
+            sample_label_test.append(img_ground_truth)
+            sample_label_split_test.append(label_all)
+            sample_A_gt_test.append(A_gt)
 
-        self.train_generator = self.batch_generator(sample_img_train, sample_label_train, sample_label_split_train, sample_A_gt_train)
-        self.valid_generator = self.batch_generator(sample_img_val, sample_label_val, sample_label_split_val, sample_A_gt_val)
-        self.test_generator = self.batch_generator(sample_img_test, sample_label_test, sample_label_split_test, sample_A_gt_test)
+        self.train_generator = self.batch_generator(
+                sample_img_train, 
+                sample_label_train, 
+                sample_label_split_train, 
+                sample_A_gt_train
+        )
+        self.valid_generator = self.batch_generator(
+                sample_img_val, 
+                sample_label_val, 
+                sample_label_split_val, 
+                sample_A_gt_val
+        )
+        self.test_generator = self.batch_generator(
+                sample_img_test, 
+                sample_label_test, 
+                sample_label_split_test, 
+                sample_A_gt_test
+        )
 
     def generate_color(self, color_rand):
         if( color_rand ):
@@ -505,7 +561,7 @@ class GenerateImg:
             x2 = np.random.randint( -50, 50 ) * 1.0
             y2 = np.random.randint( -50, 50 ) * 1.0
             if x1 != x2 or y1 != y2:
-                break
+                    break
 
         if( self.noise_data == False ):
             color_set_blue, set_color_red = self.generate_color(self.color_rand)
@@ -520,7 +576,8 @@ class GenerateImg:
                     class_blue[ i, j ] = 1.0
                 else:
                     img_ground_truth[ i, j ] = 1.0
-                    img[ i, j ] = set_color_red #R,G,B
+                    #R,G,B
+                    img[ i, j ] = set_color_red 
                     class_red[ i, j ] = 1.0
 
     def generate_circle( self, img_ground_truth, img, class_blue, class_red ):
@@ -528,7 +585,8 @@ class GenerateImg:
         c_y = np.random.randint( 0, self.img_w - 1 ) * 1.0
         r = np.random.randint( 0, min( self.img_h/2, self.img_h/2 ) ) * 1.0
 
-        color_square = np.random.randint( 0, 1 ) # blue:0, red:1
+        # blue:0, red:1
+        color_square = np.random.randint( 0, 1 ) 
 
         if( self.noise_data == False ):
             color_set_blue, set_color_red = self.generate_color(self.color_rand)
@@ -539,20 +597,27 @@ class GenerateImg:
                     color_set_blue, set_color_red = self.generate_color(self.color_rand)
 
                 if self.point_inside_circle( c_x, c_y, r, i, j ):
-                    if color_square == 0: # square blue
-                        img[ i, j ] = color_set_blue #R,G,B
+                    # square blue
+                    if color_square == 0: 
+                        #R,G,B
+                        img[ i, j ] = color_set_blue 
                         class_blue[ i, j ] = 1.0
                     else: # square red
                         img_ground_truth[ i, j ] = 1.0
-                        img[ i, j ] = set_color_red #R,G,B
+                        #R,G,B
+                        img[ i, j ] = set_color_red 
                         class_red[ i, j ] = 1.0
                 else:
-                    if color_square == 0: # brackground red
+                    # brackground red
+                    if color_square == 0: 
                         img_ground_truth[ i, j ] = 1.0
-                        img[ i, j ] = set_color_red #R,G,B
+                        #R,G,B
+                        img[ i, j ] = set_color_red 
                         class_red[ i, j ] = 1.0
-                    else: # brackground blue
-                        img[ i, j ] = color_set_blue #R,G,B
+                # brackground blue
+                    else: 
+                        #R,G,B
+                        img[ i, j ] = color_set_blue 
                         class_blue[ i, j ] = 1.0
 
     def generate_rectangle( self, img_ground_truth, img, class_blue, class_red ):
@@ -567,7 +632,8 @@ class GenerateImg:
         x_min = min(x1, x2); x_max = max(x1, x2)
         y_min = min(y1, y2); y_max = max(y1, y2)
 
-        color_square = np.random.randint( 2 ) # blue:0, red:1
+        # blue:0, red:1
+        color_square = np.random.randint( 2 ) 
 
         if( self.noise_data == False ):
             color_set_blue, set_color_red = self.generate_color(self.color_rand)
@@ -578,20 +644,28 @@ class GenerateImg:
                     color_set_blue, set_color_red = self.generate_color(self.color_rand)
 
                 if self.point_inside_rectangle( x_min, y_min, x_max, y_max, i, j ):
-                    if color_square == 0: # square blue
-                        img[ i, j ] = color_set_blue #R,G,B (51.0, 2.0, 151.0)
+                    # square blue
+                    if color_square == 0: 
+                        #R,G,B (51.0, 2.0, 151.0)
+                        img[ i, j ] = color_set_blue 
                         class_blue[ i, j ] = 1.0
-                    else: # square red
+                    # square red
+                    else: 
                         img_ground_truth[ i, j ] = 1.0
-                        img[ i, j ] = set_color_red #R,G,B (187.0, 5.0, 13.0)
+                        #R,G,B (187.0, 5.0, 13.0)
+                        img[ i, j ] = set_color_red 
                         class_red[ i, j ] = 1.0
                 else:
-                    if color_square == 0: # brackground red
+                    # brackground red
+                    if color_square == 0: 
                         img_ground_truth[ i, j ] = 1.0
-                        img[ i, j ] = set_color_red #R,G,B
+                        #R,G,B
+                        img[ i, j ] = set_color_red 
                         class_red[ i, j ] = 1.0
-                    else: # brackground blue
-                        img[ i, j ] = color_set_blue #R,G,B
+                    # brackground blue
+                    else: 
+                        #R,G,B
+                        img[ i, j ] = color_set_blue 
                         class_blue[ i, j ] = 1.0
 
     def generate_syntetic_data( self, img_h, img_w, option_shape='all' ):
@@ -609,7 +683,8 @@ class GenerateImg:
             sample_type = 1
         elif option_shape == 'rectangle':
             sample_type = 2
-        else: sample_type = np.random.randint( 3 ) #0,1,2
+        else: 
+            sample_type = np.random.randint( 3 ) #0,1,2
 
         gen = GenerateImg( dim_x = img_h, dim_y = img_w )
         if sample_type == 0:
@@ -621,7 +696,8 @@ class GenerateImg:
 
         label_list.append( class_blue )
         label_list.append( class_red )
-        label_all = np.dstack( label_list ).astype( np.float32 ) # 2 classes generates
+        # 2 classes generates
+        label_all = np.dstack( label_list ).astype( np.float32 ) 
         r, g, b = cv2.split( img )
         img_bgr = cv2.merge( [ b, g, r ] )
 
@@ -638,45 +714,70 @@ class GenerateImg:
                 files_label = db_label[offset:offset+batch_size]
                 files_label_split = db_label_split[offset:offset+batch_size]
                 files_A_gt = db_A_gt[offset:offset+batch_size]
-                adj_input = np.repeat(support[np.newaxis, :, :], len(files_img), axis=0) #empty identity adj mtrx
-                yield np.array(files_A_gt), np.array(files_img).reshape(len(files_img),self.img_h*self.img_w,-1), np.array( files_label ), adj_input
+                #empty identity adj mtrx
+                adj_input = np.repeat(
+                        support[np.newaxis, :, :], 
+                        len(files_img), 
+                        axis=0
+                ) 
+                yield tuple([
+                        np.array(files_A_gt), 
+                        np.array(files_img).reshape(len(files_img),self.img_h*self.img_w,-1), 
+                        np.array( files_label ), 
+                        adj_input
+                ])
                 #yield np.array( files_img ), np.array( files_label ), np.array( files_label_split ), np.array( files_A_gt )
         return gen_batch
 
 def test_batch_gen():
-  #------------------ Geometric shape synthetic data ------------------
-  num_samples = 1000
-  num_points = 400 #square
+    #------------------ Geometric shape synthetic data ------------------
+    num_samples = 1000
+    num_points = 400 #square
 
-  dim_h = int(np.sqrt(num_points))
-  dim_w = int(np.sqrt(num_points))
-  #num_data = 1000
-  display = CDisplay()
-  #synthetic data
-  gen_dataset = GenerateImg( dim_x = dim_h, dim_y = dim_w, proportion=(0.05, 0.2, num_samples) )
-  gen_dataset.load_data()
+    dim_h = int(np.sqrt(num_points))
+    dim_w = int(np.sqrt(num_points))
+    #num_data = 1000
+    display = CDisplay()
+    #synthetic data
+    gen_dataset = GenerateImg(
+            dim_x = dim_h, 
+            dim_y = dim_w, 
+            proportion=(0.05, 0.2, num_samples) 
+    )
+    gen_dataset.load_data()
 
-  epochs=1
-  batch_size=20
-  for epoch in range(epochs):
-    print("\n########## epoch " + str(epoch+1) + " ##########")
-    gen_trainig = gen_dataset.train_generator( batch_size = batch_size )
-    counter = 0
-    for gt_graph, set_feature, set_segmentation, in_graph in gen_trainig:
-      print("---- batch ----")
-      print("gt_graph.shape: ", gt_graph.shape)
-      print("set_feature.shape: ", set_feature.shape)
-      print("in_graph.shape: ", in_graph.shape)
-      #display = geometric_shape_dataset.CDisplay()
-      shape_img = set_feature.shape
-      dim_h, dim_w = int(np.sqrt(shape_img[1])), int(np.sqrt(shape_img[1]))
-      img_set_feature = set_feature.reshape(shape_img[0], dim_h, dim_w, shape_img[2])
-      img_set_feature = img_set_feature[:,:,:,0:3]
-      for k in range(gt_graph.shape[0]):
-        display.display_neighborhood(img_set_feature[k], set_segmentation[k],\
-                    gt_graph[k], gt_graph[k], dim_h, dim_w, 'geo/img_'+str(counter)+'.png') #the second gt_graph will be the prediction
-        counter += 1
-      break
+    epochs=1
+    batch_size=20
+    for epoch in range(epochs):
+        print("\n########## epoch " + str(epoch+1) + " ##########")
+        gen_trainig = gen_dataset.train_generator( batch_size = batch_size )
+        counter = 0
+        for gt_graph, set_feature, set_segmentation, in_graph in gen_trainig:
+            print("---- batch ----")
+            print("gt_graph.shape: ", gt_graph.shape)
+            print("set_feature.shape: ", set_feature.shape)
+            print("in_graph.shape: ", in_graph.shape)
+            #display = geometric_shape_dataset.CDisplay()
+            shape_img = set_feature.shape
+            dim_h, dim_w = int(np.sqrt(shape_img[1])), int(np.sqrt(shape_img[1]))
+            img_set_feature = set_feature.reshape(
+                    shape_img[0], 
+                    dim_h, 
+                    dim_w, 
+                    shape_img[2]
+            )
+            img_set_feature = img_set_feature[:,:,:,0:3]
+            for k in range(gt_graph.shape[0]):
+                display.display_neighborhood(
+                        img_set_feature[k], 
+                        set_segmentation[k],
+                        gt_graph[k], gt_graph[k], 
+                        dim_h, 
+                        dim_w, 
+                        'geo/img_'+str(counter)+'.png'
+                ) #the second gt_graph will be the prediction
+                counter += 1
+            break
 
 test_batch_gen()
 

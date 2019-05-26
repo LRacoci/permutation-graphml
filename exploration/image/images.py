@@ -1,3 +1,155 @@
+#@title Imports  { form-width: "20%" }
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import collections
+import itertools
+import time
+
+from graph_nets import graphs
+from graph_nets import utils_np
+from graph_nets import utils_tf
+from graph_nets.demos import models
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+from scipy import spatial
+import tensorflow as tf
+
+SEED = 1
+np.random.seed(SEED)
+tf.set_random_seed(SEED)
+
+#@title Debug { form-width: "20%" }
+debug_tags = {
+    "", "darwin_batches_to_networkx_graphs"
+}
+
+import json
+def json_default(obj) :
+    from networkx.readwrite import json_graph
+    class_name = obj.__class__.__name__
+    serialization = {
+        'DiGraph' : json_graph.adjacency_data,
+        'int64' : int,
+        'int32' : int,
+        'float32' : float,
+        'ndarray' : list
+    }
+    if class_name in serialization:
+        return serialization[class_name](obj)
+    else:
+        msg = "Unserializable object {} of type '{}', add class '{}' to rules".format(obj, type(obj),class_name)
+        print(msg)
+        raise TypeError(msg)
+
+def dumps(obj, indent = 4, default = json_default) :
+    return json.dumps(obj, indent = indent, default = default)
+
+def debug(obj, tag=""):
+    global debug_tags
+    if tag in debug_tags:
+        print(tag, dumps(obj))
+
+#@title Converters to/from Darwin's format  { form-width: "20%" }
+from graph_nets import blocks
+from graph_nets import graphs
+from graph_nets import modules
+from graph_nets import utils_np
+from graph_nets import utils_tf
+
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import sonnet as snt
+import tensorflow as tf
+
+def darwin_batches_to_networkx_graphs(adjs_gt, node_features, adjs_inp, set_segmentation):
+    '''
+    Args:
+        adjs_gt : adjacency matrix of ground truth, shape = (num_graphs, num_nodes, num_nodes)
+        node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
+        adjs_inp : adjacency matrix of input graph, shape = (num_graphs, num_nodes, num_nodes)
+
+    Returns:
+        graphs_tuple : GraphTuple from graph_nets
+    '''
+    nxGraphs = []
+    for adj_gt, node_feature, adj_inp, set_segm in zip(adjs_gt, node_features, adjs_inp,set_segmentation):
+        nxGraph = nx.from_numpy_matrix(adj_inp, create_using=nx.DiGraph)
+        #Nodes
+        nx.set_node_attributes(G = nxGraph, name ="rgbxy", values = {
+            n : val 
+            for n,val in enumerate(node_feature)
+        })
+        set_segm = set_segm[
+            np.uint32(node_feature[:,-2]), 
+            np.uint32(node_feature[:,-1])
+        ]
+        nx.set_node_attributes(G = nxGraph, name ="resp", values = {
+            n : val
+            for n,val in enumerate(set_segm)
+        })
+        #Edges
+        nx.set_edge_attributes(G = nxGraph, name ="resp", values = {
+            (u,v) : adj_gt[u][v]
+            for (u,v) in nxGraph.edges
+        })
+        debug(nxGraph, "darwin_batches_to_networkx_graphs")
+        nxGraphs.append(nxGraph)
+
+    return nxGraphs
+
+def graphs_tuple_dumps(graphs_tuple):
+    data_dicts = utils_np.graphs_tuple_to_data_dicts(graphs_tuple)
+    return json_dumps(data_dicts)
+
+def graphs_tuple_loads(string_dump):
+    data_dicts = json.loads(string_dump)
+    for data_dict in data_dicts:
+        for key in data_dict:
+            data_dict[key] = np.array(data_dict[key])
+
+    graphs_tuple = utils_np.data_dicts_to_graphs_tuple(data_dicts)
+    return graphs_tuple
+
+
+def graphs_tuples_to_darwin_batches(graph_nets):
+    '''
+    Args:
+        graphs_tuple : GraphTuple from graph_nets
+    Returns:
+        graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
+        node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
+    '''
+    adjs_gt = []
+    node_features = []
+    adjs_inp = []
+    
+    data_dicts = utils_np.graphs_tuple_to_data_dicts(graph_nets)
+    for data_dict in data_dicts:
+        nodes = data_dict['nodes']
+        num_nodes= len(nodes)
+        
+        adj_inp = np.zeros(shape = (num_nodes, num_nodes))
+        adj_gt = np.zeros(shape = (num_nodes, num_nodes))
+        
+        senders = data_dict['senders']
+        receivers = data_dict['receivers']
+        edges = data_dict['edges']
+        
+        adj_inp[senders, receivers] = 1.0
+        adjs_gt[senders, receivers] = edges
+        
+        adjs_inp.append(adj_inp)
+        adjs_gt.append(adj_gt)
+        node_features.append(nodes)
+    
+    return np.array(adjs_gt), np.array(node_features), np.array(adjs_inp)
+
+#@title Darwin's Images { form-width: "20%" }
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -7,150 +159,6 @@ import tensorflow as tf
 np.random.seed(123)
 
 epsilon = 1e-12
-
-class CDisplay:
-
-    def display_images( self, img, label, label_by_classes, name ):
-        b, g, r = cv2.split( img )
-        img_rgb = cv2.merge( [ r, g, b ] )
-
-        fig = plt.figure()
-
-        plt.subplot( 2, 2, 1 )
-        plt.title('image, X', fontsize=9)
-        plt.imshow( img_rgb.astype(np.uint8) )
-
-        plt.subplot( 2, 2, 2 )
-        plt.title('label, Y', fontsize=9)
-        plt.imshow( label )
-
-        plt.subplot( 2, 2, 3 )
-        plt.title('Class blue', fontsize=9)
-        plt.imshow( label_by_classes[ :, :, 0 ].astype(np.uint8) )
-
-        plt.subplot( 2, 2, 4 )
-        plt.title('Class red', fontsize=9)
-        plt.imshow( label_by_classes[ :, :, 1 ].astype(np.uint8) )
-
-        plt.show()
-        fig.savefig( name, dpi = fig.dpi )
-
-    def display_results( self, img, label, pred, name ):
-        b, g, r = cv2.split( img )
-        img_rgb = cv2.merge( [ r, g, b ] )
-
-        fig = plt.figure()
-
-        plt.subplot( 1, 3, 1 )
-        plt.title('image, X', fontsize=9)
-        plt.imshow( img_rgb.astype(np.uint8) )
-
-        plt.subplot( 1, 3, 2 )
-        plt.title('label, Y', fontsize=9)
-        plt.imshow( label.astype(np.uint8) )
-
-        plt.subplot( 1, 3, 3 )
-        plt.title('prediction', fontsize=9)
-        plt.imshow( pred.astype(np.uint8) )
-
-        plt.show()
-        fig.savefig( name, dpi = fig.dpi )
-
-    def display_neighborhood(
-            self, 
-            img_orig, 
-            img_pred, 
-            adj_original, 
-            adj_update,
-            img_h, 
-            img_w, 
-            name 
-    ):
-
-    fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
-
-    ax1.set_title('Img Original', fontsize=9)
-    ax1.imshow( img_orig.astype(np.uint8) )
-
-    ax2.set_title('Img Prediction', fontsize=9)
-    ax2.imshow( img_pred.astype(np.uint8) )
-
-    ch = np.arange(img_h)
-    cw = np.arange(img_w)
-    xx, yy = np.meshgrid(ch, cw)
-    ax1.plot(xx,yy, 'o', c='w', markersize=1)
-    ax2.plot(xx,yy, 'o', c='r', markersize=1)
-
-
-    for h in range(img_h * img_w):
-        for w in range(h, img_h * img_w):
-            if( h != w ):
-                hi = [ int(h / img_w), int(w / img_w) ]
-                wi = [ int(h % img_w), int(w % img_w) ]
-
-                if adj_original[h,w] >= epsilon:
-                    ax1.plot(
-                        wi, 
-                        hi, 
-                        linewidth=0.7, 
-                        color='w', 
-                        linestyle='-',
-                        alpha=adj_original[h,w], 
-                        marker='o', 
-                        markersize=1.0 
-                    )
-                if (adj_update[h,w] >= epsilon):
-                    ax2.plot(
-                        wi, 
-                        hi, 
-                        linewidth=0.7, 
-                        color='r', 
-                        linestyle='-',
-                        alpha = round( adj_update[h,w], 2 ) 
-                    )
-
-    fig.savefig( name, dpi = 400 ) #dpi = fig.dpi,
-
-    def display_neighborhood2( 
-        self, 
-        img_orig, 
-        img_pred, 
-        adj_original, 
-        adj_update, 
-        img_h, 
-        img_w, 
-        name 
-    ):
-        '''Show the graph using the gt classifier as background(img_orig)'''
-        fig = plt.figure()
-
-        plt.imshow(img_orig)
-
-        h = []
-        w = []
-        for i in range(img_h):
-                for j in range(img_w):
-                        h.append(i)
-                        w.append(j)
-
-        plt.plot(h,w, 'o', c='r', markersize=3)
-        for h in range(img_h * img_w):
-                for w in range(h, img_h * img_w):
-                        if (adj_update[h,w] >= epsilon):
-                                hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
-                                wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
-                                plt.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
-                                        alpha = round( adj_update[h,w], 2 ))
-
-        fig.savefig( name, dpi = 100 ) #dpi = fig.dpi,
-
-    def displayAdjMatrix( self, adj_update, name ):
-        fig = plt.figure()
-        plt.imshow( adj_update )
-        plt.show()
-        fig.savefig( name, dpi = fig.dpi )
 
 class GenerateAdjMatrx:
 
@@ -657,10 +665,164 @@ class GenerateImg:
                 ])
         return gen_batch
 
+
+
+#@title Graph Plot Helper Class  { form-width: "30%" }
+
+class CDisplay:
+
+    def display_images( self, img, label, label_by_classes, name ):
+        b, g, r = cv2.split( img )
+        img_rgb = cv2.merge( [ r, g, b ] )
+
+        fig = plt.figure()
+
+        plt.subplot( 2, 2, 1 )
+        plt.title('image, X', fontsize=9)
+        plt.imshow( img_rgb.astype(np.uint8) )
+
+        plt.subplot( 2, 2, 2 )
+        plt.title('label, Y', fontsize=9)
+        plt.imshow( label )
+
+        plt.subplot( 2, 2, 3 )
+        plt.title('Class blue', fontsize=9)
+        plt.imshow( label_by_classes[ :, :, 0 ].astype(np.uint8) )
+
+        plt.subplot( 2, 2, 4 )
+        plt.title('Class red', fontsize=9)
+        plt.imshow( label_by_classes[ :, :, 1 ].astype(np.uint8) )
+
+        plt.show()
+        fig.savefig( name, dpi = fig.dpi )
+
+    def display_results( self, img, label, pred, name ):
+        b, g, r = cv2.split( img )
+        img_rgb = cv2.merge( [ r, g, b ] )
+
+        fig = plt.figure()
+
+        plt.subplot( 1, 3, 1 )
+        plt.title('image, X', fontsize=9)
+        plt.imshow( img_rgb.astype(np.uint8) )
+
+        plt.subplot( 1, 3, 2 )
+        plt.title('label, Y', fontsize=9)
+        plt.imshow( label.astype(np.uint8) )
+
+        plt.subplot( 1, 3, 3 )
+        plt.title('prediction', fontsize=9)
+        plt.imshow( pred.astype(np.uint8) )
+
+        plt.show()
+        fig.savefig( name, dpi = fig.dpi )
+
+    def display_neighborhood(
+            self, 
+            img_orig, 
+            img_pred, 
+            adj_original, 
+            adj_update,
+            img_h, 
+            img_w, 
+            name 
+    ):
+
+        fig = plt.figure()
+        ax1 = plt.subplot(121)
+        ax2 = plt.subplot(122)
+
+        ax1.set_title('Img Original', fontsize=9)
+        ax1.imshow( img_orig.astype(np.uint8) )
+
+        ax2.set_title('Img Prediction', fontsize=9)
+        ax2.imshow( img_pred.astype(np.uint8) )
+
+        ch = np.arange(img_h)
+        cw = np.arange(img_w)
+        xx, yy = np.meshgrid(ch, cw)
+        ax1.plot(xx,yy, 'o', c='w', markersize=1)
+        ax2.plot(xx,yy, 'o', c='r', markersize=1)
+
+
+        for h in range(img_h * img_w):
+            for w in range(h, img_h * img_w):
+                if( h != w ):
+                    hi = [ int(h / img_w), int(w / img_w) ]
+                    wi = [ int(h % img_w), int(w % img_w) ]
+
+                    if adj_original[h,w] >= epsilon:
+                        ax1.plot(
+                            wi, 
+                            hi, 
+                            linewidth=0.7, 
+                            color='w', 
+                            linestyle='-',
+                            alpha=adj_original[h,w], 
+                            marker='o', 
+                            markersize=1.0 
+                        )
+                    if (adj_update[h,w] >= epsilon):
+                        ax2.plot(
+                            wi, 
+                            hi, 
+                            linewidth=0.7, 
+                            color='r', 
+                            linestyle='-',
+                            alpha = round( adj_update[h,w], 2 ) 
+                        )
+
+        fig.savefig( name, dpi = 400 ) #dpi = fig.dpi,
+
+    def display_neighborhood2( 
+        self, 
+        img_orig, 
+        img_pred, 
+        adj_original, 
+        adj_update, 
+        img_h, 
+        img_w, 
+        name 
+    ):
+    '''Show the graph using the gt classifier as background(img_orig)'''
+    fig = plt.figure()
+
+    plt.imshow(img_orig)
+
+    h = []
+    w = []
+    for i in range(img_h):
+        for j in range(img_w):
+            h.append(i)
+            w.append(j)
+
+    plt.plot(h,w, 'o', c='r', markersize=3)
+    for h in range(img_h * img_w):
+        for w in range(h, img_h * img_w):
+            if (adj_update[h,w] >= epsilon):
+                hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
+                wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
+                plt.plot(
+                    wi, 
+                    hi, 
+                    linewidth=2.0, 
+                    color='r', 
+                    linestyle='-',
+                    alpha = round( adj_update[h,w], 2 )
+                )
+
+    fig.savefig( name, dpi = 100 ) #dpi = fig.dpi,
+
+    def displayAdjMatrix( self, adj_update, name ):
+        fig = plt.figure()
+        plt.imshow( adj_update )
+        plt.show()
+        fig.savefig( name, dpi = fig.dpi )
+
 def test_batch_gen():
     #------------------ Geometric shape synthetic data ------------------
-    num_samples = 1000
-    num_points = 400 #square
+    num_samples = 7
+    num_points = 9 #square
 
     dim_h = int(np.sqrt(num_points))
     dim_w = int(np.sqrt(num_points))
@@ -675,7 +837,7 @@ def test_batch_gen():
     gen_dataset.load_data()
 
     epochs=1
-    batch_size=20
+    batch_size=3
     for epoch in range(epochs):
         print("\n########## epoch " + str(epoch+1) + " ##########")
         gen_trainig = gen_dataset.train_generator( batch_size = batch_size )
@@ -683,9 +845,17 @@ def test_batch_gen():
         for gt_graph, set_feature, set_segmentation, in_graph in gen_trainig:
             print("---- batch ----")
             print("gt_graph.shape: ", gt_graph.shape)
+            print(gt_graph)
             print("set_feature.shape: ", set_feature.shape)
+            print(set_feature)
             print("set_segmentation.shape: ", set_segmentation.shape)
+            print(set_segmentation)
             print("in_graph.shape: ", in_graph.shape)
+            print(in_graph)
+            
+            nxGraphs = darwin_batches_to_networkx_graphs(gt_graph, set_feature, in_graph, set_segmentation)
+            
+            #display = geometric_shape_dataset.CDisplay()
             shape_img = set_feature.shape
             dim_h, dim_w = int(np.sqrt(shape_img[1])), int(np.sqrt(shape_img[1]))
             img_set_feature = set_feature.reshape(
@@ -708,4 +878,3 @@ def test_batch_gen():
             break
 
 test_batch_gen()
-

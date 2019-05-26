@@ -11,26 +11,33 @@ import numpy as np
 import sonnet as snt
 import tensorflow as tf
 
-
-def darwin_batches_to_networkx_graphs(graphs, node_features, surface_type):
+def darwin_batches_to_networkx_graphs(adjs_gt, node_features, adjs_inp, set_segmentation):
     '''
     Args:
-        graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
+        adjs_gt : adjacency matrix of ground truth, shape = (num_graphs, num_nodes, num_nodes)
         node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
+        adjs_inp : adjacency matrix of input graph, shape = (num_graphs, num_nodes, num_nodes)
 
     Returns:
         graphs_tuple : GraphTuple from graph_nets
     '''
-    global SURFACE_TYPES
     nxGraphs = []
-    for graph, node_feature in zip(graphs, node_features):
-        nxGraph = nx.from_numpy_matrix(graph, create_using=nx.DiGraph)
-        nx.set_node_attributes(G = nxGraph, name ="pos", values = {n : val for n,val in enumerate(node_feature)})
-        nx.set_edge_attributes(G = nxGraph, name ="distance", values = {
-            (u,v) : np.linalg.norm(node_feature[u] - node_feature[v])
+    for adj_gt, node_feature, adj_inp, set_segm in zip(adjs_gt, node_features, adjs_inp,set_segmentation):
+        nxGraph = nx.from_numpy_matrix(adj_inp, create_using=nx.DiGraph)
+        nx.set_node_attributes(G = nxGraph, name ="rgbxy", values = {
+            n : val 
+            for n,val in enumerate(node_feature)
+        })
+        print(set_segm)
+        print(np.uint32(node_feature[:,-2:]))
+        nx.set_node_attributes(G = nxGraph, name ="resp", values = {
+            n : val
+            for n,val in enumerate(set_segm[np.uint32(node_feature[:,-2:])])
+        })
+        nx.set_edge_attributes(G = nxGraph, name ="resp", values = {
+            (u,v) : adj_gt[u][v]
             for (u,v) in nxGraph.edges
         })
-        nxGraph.graph['type'] = to_one_hot(SURFACE_TYPES.index(surface_type), len(SURFACE_TYPES))
         nxGraphs.append(nxGraph)
 
     return nxGraphs
@@ -76,18 +83,28 @@ def graphs_tuples_to_darwin_batches(graph_nets):
         graph : adjacency matrix of the graph, shape = (num_graphs, num_nodes, num_nodes)
         node_features :  Matrix of node features, shape = (num_graphs, num_nodes, num_node_features)
     '''
-    adjs = []
+    adjs_gt = []
     node_features = []
+    adjs_inp = []
+    
     data_dicts = utils_np.graphs_tuple_to_data_dicts(graph_nets)
     for data_dict in data_dicts:
         nodes = data_dict['nodes']
         num_nodes= len(nodes)
-        adj = np.zeros(shape = (num_nodes, num_nodes))
+        
+        adj_inp = np.zeros(shape = (num_nodes, num_nodes))
+        adj_gt = np.zeros(shape = (num_nodes, num_nodes))
+        
         senders = data_dict['senders']
         receivers = data_dict['receivers']
-        adj[senders, receivers] = 1
-        adjs.append(adj)
+        edges = data_dict['edges']
+        
+        adj_inp[senders, receivers] = 1.0
+        adjs_gt[senders, receivers] = edges
+        
+        adjs_inp.append(adj_inp)
+        adjs_gt.append(adj_gt)
         node_features.append(nodes)
-
-    return np.array(adjs), np.array(node_features)
+    
+    return np.array(adjs_gt), np.array(node_features), np.array(adjs_inp)
 

@@ -69,7 +69,7 @@ def generate_raw_graph(
     geo_density=None,
     node_rate=1.0,
     min_length=1,
-    seed=0
+    permute=False
 ):
     """Creates a connected graph.
 
@@ -135,13 +135,13 @@ def generate_raw_graph(
     for u, v in graph.edges():
         graph[u][v][DISTANCE_WEIGHT_NAME] = rand.random_sample()
     
-    if seed != 0:
+    if permute:
         graph = nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))})
 
     return graph
 
-def generate_raw_graphs(rand, num_examples, min_max_nodes, geo_density, seed=0):
-    return [generate_raw_graph(rand, min_max_nodes, geo_density=geo_density, seed = seed) for _ in range(num_examples)]
+def generate_raw_graphs(rand, num_examples, min_max_nodes, geo_density, permute=False):
+    return [generate_raw_graph(rand, min_max_nodes, geo_density=geo_density, permute = permute) for _ in range(num_examples)]
 
 #@title Graph Plot Helper Class  { form-width: "30%" }
 
@@ -784,8 +784,7 @@ def make_all_runnable_in_session(*args):
 
 tf.reset_default_graph()
 
-seed = 2 
-rand = np.random.RandomState(seed=seed)
+rand = np.random.RandomState(seed=SEED)
 
 # Model parameters.
 # Number of processing (message-passing) steps.
@@ -803,12 +802,12 @@ num_nodes_min_max_ge = (64, 129)
 
 # Data.
 # Input and target placeholders.
-raw_graphs = generate_raw_graphs(rand, num_examples, num_nodes_min_max_tr, theta, seed)
+raw_graphs = generate_raw_graphs(rand, num_examples, num_nodes_min_max_tr, theta)
 input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(edge_output_size=2, node_output_size=2)
+model = EncodeProcessDecode(edge_output_size=2, node_output_size=2)
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -938,7 +937,6 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
 # training by simply executing this cell again.
 
 PERMUTE_GRAPHS = True
-NEW_GRAPHS = True
 
 # How much time between logging and printing the current results.
 log_every_seconds = 20
@@ -990,7 +988,12 @@ start_time = time.time()
 last_log_time = start_time
 for iteration in range(last_iteration, num_training_iterations):
     last_iteration = iteration
-    raw_graphs = generate_raw_graphs(rand, num_examples, num_nodes_min_max_tr, theta, seed)
+    #Check if it`s time to repeat the dataset
+    if iteration % 1000 == 0:
+        np.random.seed(SEED)
+        tf.set_random_seed(SEED)
+    
+    raw_graphs = generate_raw_graphs(rand, num_examples, num_nodes_min_max_tr, theta)
     sources, targets = generate_networkx_graphs(raw_graphs)
     feed_dict = create_feed_dict(sources, targets, input_ph, target_ph)
     train_values = sess.run({
@@ -998,8 +1001,9 @@ for iteration in range(last_iteration, num_training_iterations):
             "target": target_ph,
             "loss": loss_op_tr,
             "outputs": output_ops_tr
-    },
-    feed_dict=feed_dict)
+        },
+        feed_dict=feed_dict
+    )
     
     correct_tr, solved_tr = compute_accuracy(
         train_values["target"],
@@ -1012,12 +1016,11 @@ for iteration in range(last_iteration, num_training_iterations):
 
     the_time = time.time()
     elapsed_since_last_log = the_time - last_log_time
-    if True: #elapsed_since_last_log > log_every_seconds:
+    if elapsed_since_last_log > log_every_seconds:
         save_path = saver.save(sess, "./tmp/model.ckpt")
         last_log_time = the_time
         
-        if NEW_GRAPHS or not PERMUTE_GRAPHS:
-            raw_graphs_test = generate_raw_graphs(rand, num_examples, num_nodes_min_max_ge, theta, seed)
+        graphs_test = generate_raw_graphs(rand, num_examples, num_nodes_min_max_ge, theta)
         
         #Permute raw_graphs
         if PERMUTE_GRAPHS:
@@ -1115,6 +1118,8 @@ for iteration in range(last_iteration, num_training_iterations):
             ]
             
         print("\t".join([str(e) for e in row]))
+
+
 
 #@title Visualize results  { form-width: "30%" }
 

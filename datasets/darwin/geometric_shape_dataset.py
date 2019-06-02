@@ -67,51 +67,51 @@ class CDisplay:
             name 
     ):
 
-    fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
+        fig = plt.figure()
+        ax1 = plt.subplot(121)
+        ax2 = plt.subplot(122)
 
-    ax1.set_title('Img Original', fontsize=9)
-    ax1.imshow( img_orig.astype(np.uint8) )
+        ax1.set_title('Img Original', fontsize=9)
+        ax1.imshow( img_orig.astype(np.uint8) )
 
-    ax2.set_title('Img Prediction', fontsize=9)
-    ax2.imshow( img_pred.astype(np.uint8) )
+        ax2.set_title('Img Prediction', fontsize=9)
+        ax2.imshow( img_pred.astype(np.uint8) )
 
-    ch = np.arange(img_h)
-    cw = np.arange(img_w)
-    xx, yy = np.meshgrid(ch, cw)
-    ax1.plot(xx,yy, 'o', c='w', markersize=1)
-    ax2.plot(xx,yy, 'o', c='r', markersize=1)
+        ch = np.arange(img_h)
+        cw = np.arange(img_w)
+        xx, yy = np.meshgrid(ch, cw)
+        ax1.plot(xx,yy, 'o', c='w', markersize=1)
+        ax2.plot(xx,yy, 'o', c='r', markersize=1)
 
 
-    for h in range(img_h * img_w):
-        for w in range(h, img_h * img_w):
-            if( h != w ):
-                hi = [ int(h / img_w), int(w / img_w) ]
-                wi = [ int(h % img_w), int(w % img_w) ]
+        for h in range(img_h * img_w):
+            for w in range(h, img_h * img_w):
+                if( h != w ):
+                    hi = [ int(h / img_w), int(w / img_w) ]
+                    wi = [ int(h % img_w), int(w % img_w) ]
 
-                if adj_original[h,w] >= epsilon:
-                    ax1.plot(
-                        wi, 
-                        hi, 
-                        linewidth=0.7, 
-                        color='w', 
-                        linestyle='-',
-                        alpha=adj_original[h,w], 
-                        marker='o', 
-                        markersize=1.0 
-                    )
-                if (adj_update[h,w] >= epsilon):
-                    ax2.plot(
-                        wi, 
-                        hi, 
-                        linewidth=0.7, 
-                        color='r', 
-                        linestyle='-',
-                        alpha = round( adj_update[h,w], 2 ) 
-                    )
+                    if adj_original[h,w] >= epsilon:
+                        ax1.plot(
+                            wi, 
+                            hi, 
+                            linewidth=0.7, 
+                            color='w', 
+                            linestyle='-',
+                            alpha=adj_original[h,w], 
+                            marker='o', 
+                            markersize=1.0 
+                        )
+                    if (adj_update[h,w] >= epsilon):
+                        ax2.plot(
+                            wi, 
+                            hi, 
+                            linewidth=0.7, 
+                            color='r', 
+                            linestyle='-',
+                            alpha = round( adj_update[h,w], 2 ) 
+                        )
 
-    fig.savefig( name, dpi = 400 ) #dpi = fig.dpi,
+        fig.savefig( name, dpi = 400 ) #dpi = fig.dpi,
 
     def display_neighborhood2( 
         self, 
@@ -131,18 +131,24 @@ class CDisplay:
         h = []
         w = []
         for i in range(img_h):
-                for j in range(img_w):
-                        h.append(i)
-                        w.append(j)
+            for j in range(img_w):
+                h.append(i)
+                w.append(j)
 
         plt.plot(h,w, 'o', c='r', markersize=3)
         for h in range(img_h * img_w):
-                for w in range(h, img_h * img_w):
-                        if (adj_update[h,w] >= epsilon):
-                                hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
-                                wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
-                                plt.plot(wi, hi, linewidth=2.0, color='r', linestyle='-', \
-                                        alpha = round( adj_update[h,w], 2 ))
+            for w in range(h, img_h * img_w):
+                if (adj_update[h,w] >= epsilon):
+                    hi = np.array([int(h / img_w), int(w / img_w)],dtype=np.int8)
+                    wi = np.array([ int(h % img_w), int(w % img_w)],dtype=np.int8)
+                    plt.plot(
+                        wi, 
+                        hi, 
+                        linewidth=2.0, 
+                        color='r', 
+                        linestyle='-', 
+                        alpha = round( adj_update[h,w], 2 )
+                    )
 
         fig.savefig( name, dpi = 100 ) #dpi = fig.dpi,
 
@@ -685,6 +691,7 @@ def test_batch_gen():
             print("gt_graph.shape: ", gt_graph.shape)
             print("set_feature.shape: ", set_feature.shape)
             print("set_segmentation.shape: ", set_segmentation.shape)
+            print(set_segmentation)
             print("in_graph.shape: ", in_graph.shape)
             shape_img = set_feature.shape
             dim_h, dim_w = int(np.sqrt(shape_img[1])), int(np.sqrt(shape_img[1]))

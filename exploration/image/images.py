@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #@title Imports  { form-width: "20%" }
 
 from __future__ import absolute_import
@@ -26,6 +27,7 @@ tf.set_random_seed(SEED)
 
 #@title Debug { form-width: "20%" }
 debug_tags = {
+    "create_placeholders",
 #     "raws", 
 #     "source", 
 #     "target",
@@ -104,12 +106,12 @@ def darwin_batches_to_networkx_graphs(adjs_gt, node_features, adjs_inp, set_segm
             np.uint32(node_feature[:,-2]), 
             np.uint32(node_feature[:,-1])
         ]
-        nx.set_node_attributes(G = nxGraph, name ="resp", values = {
+        nx.set_node_attributes(G = nxGraph, name ="solution", values = {
             n : val
             for n,val in enumerate(set_segm)
         })
         #Edges
-        nx.set_edge_attributes(G = nxGraph, name ="resp", values = {
+        nx.set_edge_attributes(G = nxGraph, name ="solution", values = {
             (u,v) : adj_gt[u][v]
             for (u,v) in nxGraph.edges
         })
@@ -1083,14 +1085,14 @@ for k, raw in enumerate(graphs):
     img_orig = np.zeros(shape=(img_w, img_h, 3))
     img_orig[x,y] = np.uint8(node_rgbxy[:,:3])
 
-    aux = nx.get_node_attributes(raw,'resp')
-    node_resp = []
+    aux = nx.get_node_attributes(raw,'solution')
+    node_solution = []
     for u in aux:
-        node_resp.append(aux[len(node_resp)])
-    node_resp = np.array(node_resp)
+        node_solution.append(aux[len(node_solution)])
+    node_solution = np.array(node_solution)
     
     img_pred = np.zeros(shape=(img_w, img_h))
-    img_pred[x,y] = np.uint8(node_resp)
+    img_pred[x,y] = np.uint8(node_solution)
 
     src_ax = fig.add_subplot(h, w, 2*k + 1)
     tgt_ax = fig.add_subplot(h, w, 2*k + 2)
@@ -1122,24 +1124,24 @@ for k, raw in enumerate(graphs):
                 marker='o', 
                 markersize=1.0 
             )
-        if (raw[u][v]["resp"] >= epsilon):
+        if (raw[u][v]["solution"] >= epsilon):
             tgt_ax.plot(
                 wi, 
                 hi, 
                 linewidth=0.7, 
                 color='r', 
                 linestyle='-',
-                alpha = round( raw[u][v]["resp"], 2 ) 
+                alpha = round( raw[u][v]["solution"], 2 ) 
             )
 
 #@title Source and Target from Raw { form-width: "20%" }
 def source_from_raw(raw):
     source = nx.DiGraph()
     # Nodes
-    fields = ('rgbxy','resp')
+    fields = ('rgbxy','solution')
     for node, feature in raw.nodes(data=True):
         feature = dict(feature)
-        feature['resp'] = np.zeros(shape = feature['resp'].shape)
+        feature['solution'] = np.zeros(shape = feature['solution'].shape)
         source.add_node(
             node, features=create_feature(feature, fields)
         )
@@ -1160,7 +1162,7 @@ def target_from_raw(raw):
     target = nx.DiGraph()
     solution_length = 0
     # Nodes
-    fields = ('rgbxy','resp')
+    fields = ('rgbxy','solution')
     for node, feature in raw.nodes(data=True):
         feature = dict(feature)
         feature['rgbxy'] = np.zeros(shape = feature['rgbxy'].shape)
@@ -1168,12 +1170,12 @@ def target_from_raw(raw):
             node, features=create_feature(feature, fields)
         )
     # Edges
-    fields = ('resp',)
+    fields = ('solution',)
     for receiver, sender, feature in raw.edges(data=True):
         target.add_edge(
             sender, receiver, features=create_feature(feature, fields)
         )
-        solution_length += int(feature["resp"])
+        solution_length += int(feature["solution"])
     
     target.graph["features"] = np.array([solution_length], dtype=float)
     
@@ -1226,6 +1228,7 @@ def create_placeholders(raw_graphs):
     """
     # Create some example data for inspecting the vector sizes.
     source_graphs = [source_from_raw(raw) for raw in raw_graphs]
+
     source_ph = utils_tf.placeholders_from_networkxs(
         source_graphs,
         force_dynamic_num_graphs=True
@@ -1237,11 +1240,18 @@ def create_placeholders(raw_graphs):
         target_graphs,
         force_dynamic_num_graphs=True
     )
+    debug({
+        "source_graphs": source_graphs,
+        "source_ph" : source_ph,
+        "target_graphs" : target_graphs,
+        "target_ph" : target_ph
+    }, "create_placeholders")
     return source_ph, target_ph
 
 
 def create_loss_ops(target_op, output_ops):
     loss_ops = [
+        tf.losses.softmax_cross_entropy(target_op.nodes, output_op.nodes) +
         tf.losses.softmax_cross_entropy(target_op.edges, output_op.edges)
         for output_op in output_ops
     ]
@@ -1558,14 +1568,14 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
     cs = []
     ss = []
     for td, od in zip(tdds, odds):
-        xn = np.argmax(td["nodes"], axis=-1)
-        yn = np.argmax(od["nodes"], axis=-1)
-        xe = np.argmax(td["edges"], axis=-1)
-        ye = np.argmax(od["edges"], axis=-1)
         c = []
         if use_nodes:
+            xn = np.argmax(td["nodes"], axis=-1)
+            yn = np.argmax(od["nodes"], axis=-1)
             c.append(xn == yn)
         if use_edges:
+            xe = np.argmax(td["edges"], axis=-1)
+            ye = np.argmax(od["edges"], axis=-1)
             c.append(xe == ye)
         c = np.concatenate(c, axis=0)
         s = np.all(c)

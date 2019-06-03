@@ -808,7 +808,7 @@ input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(edge_output_size=2, node_output_size=2)
+model = models.EncodeProcessDecode(edge_output_size=1)
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -914,14 +914,14 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
     cs = []
     ss = []
     for td, od in zip(tdds, odds):
-        xn = np.argmax(td["nodes"], axis=-1)
-        yn = np.argmax(od["nodes"], axis=-1)
-        xe = np.argmax(td["edges"], axis=-1)
-        ye = np.argmax(od["edges"], axis=-1)
         c = []
         if use_nodes:
+            xn = np.argmax(td["nodes"], axis=-1)
+            yn = np.argmax(od["nodes"], axis=-1)
             c.append(xn == yn)
         if use_edges:
+            xe = np.argmax(td["edges"], axis=-1)
+            ye = np.argmax(od["edges"], axis=-1)
             c.append(xe == ye)
         c = np.concatenate(c, axis=0)
         s = np.all(c)
@@ -940,7 +940,7 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
 PERMUTE_GRAPHS = True
 
 # How much time between logging and printing the current results.
-log_every_seconds = 20
+log_every_seconds = 120
 
 var_names = [
     "iteration number",
@@ -1017,7 +1017,7 @@ for iteration in range(last_iteration, num_training_iterations):
 
     the_time = time.time()
     elapsed_since_last_log = the_time - last_log_time
-    if True: #elapsed_since_last_log > log_every_seconds:
+    if elapsed_since_last_log > log_every_seconds:
         save_path = saver.save(sess, "./tmp/model.ckpt")
         last_log_time = the_time
         

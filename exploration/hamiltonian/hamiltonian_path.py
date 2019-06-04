@@ -18,7 +18,7 @@ import numpy as np
 from scipy import spatial
 import tensorflow as tf
 
-SEED = 1
+SEED = 2
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
@@ -488,7 +488,7 @@ for j, graph in enumerate(graphs):
 # limitations under the License.
 # ============================================================================
 """Model architectures for the demos."""
-
+from graph_nets import modules
 import sonnet as snt
 
 NUM_LAYERS = 2  # Hard-code number of layers in the edge/node/global models.
@@ -651,17 +651,13 @@ def target_from_raw(raw):
     solution_length = 0
     # Nodes
     for node, feature in raw.nodes(data=True):
-        target.add_node(node, features=to_one_hot(
-            create_feature(feature, fields).astype(int), 2
-        )[0])
+        target.add_node(node, features=create_feature(feature, fields))
         solution_length += int(feature["solution"])
 
     solution_length /= raw.number_of_nodes()
     # Edges
     for receiver, sender, feature in raw.edges(data=True):
-        target.add_edge(sender, receiver, features=to_one_hot(
-            create_feature(feature, fields).astype(int), 2
-        )[0])
+        target.add_edge(sender, receiver, features=create_feature(feature, fields))
 
     target.graph["features"] = np.array([solution_length], dtype=float)
 
@@ -808,7 +804,7 @@ input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
-model = models.EncodeProcessDecode(edge_output_size=1)
+model = EncodeProcessDecode(edge_output_size=1)
 # A list of outputs, one per processing step.
 output_ops_tr = model(input_ph, num_processing_steps_tr)
 output_ops_ge = model(input_ph, num_processing_steps_ge)
@@ -851,6 +847,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 last_iteration = 0
+last_time = 0
 logged_iterations = []
 losses_tr = []
 corrects_tr = []
@@ -1094,7 +1091,7 @@ for iteration in range(last_iteration, num_training_iterations):
         corrects_ge.append(correct_ge_test)
         solveds_ge.append(solved_ge_test)
 
-        elapsed = time.time() - start_time
+        elapsed = time.time() - start_time + last_time
 
 
         logged_iterations.append(iteration)

@@ -19,11 +19,11 @@ import numpy as np
 from scipy import spatial
 import tensorflow as tf
 
-SEED = 1
+SEED = 2
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
-!mkdir geo
+#!mkdir geo
 
 #@title Debug { form-width: "20%" }
 debug_tags = {
@@ -1173,7 +1173,9 @@ def target_from_raw(raw):
     fields = ('solution',)
     for receiver, sender, feature in raw.edges(data=True):
         target.add_edge(
-            sender, receiver, features=create_feature(feature, fields)
+            sender, receiver, features=to_one_hot(
+                create_feature(feature, fields).astype(int), 2
+            )[0]
         )
         solution_length += int(feature["solution"])
     
@@ -1241,9 +1243,9 @@ def create_placeholders(raw_graphs):
         force_dynamic_num_graphs=True
     )
     debug({
-        "source_graphs": source_graphs,
+        "source_graphs[0]": source_graphs[0],
         "source_ph" : source_ph,
-        "target_graphs" : target_graphs,
+        "target_graphs[0]" : target_graphs[0],
         "target_ph" : target_ph
     }, "create_placeholders")
     return source_ph, target_ph
@@ -1461,7 +1463,7 @@ input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
-model = EncodeProcessDecode(edge_output_size=1, node_output_size=6)
+model = EncodeProcessDecode(edge_output_size=2, node_output_size=6)
 # A list of outputs, one per processing step.
 debug({"input_ph" : input_ph})
 output_ops_tr = model(input_ph, num_processing_steps_tr)
@@ -1638,6 +1640,8 @@ if PERMUTE_GRAPHS:
     ]
 
 print("\t".join(labels))
+
+debug_tags = {""}
 
 start_time = time.time()
 last_log_time = start_time

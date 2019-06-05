@@ -19,7 +19,7 @@ import numpy as np
 from scipy import spatial
 import tensorflow as tf
 
-SEED = 2
+SEED = 42
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
@@ -1593,10 +1593,10 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
 # intermediate results by running the next cell (below). You can then resume
 # training by simply executing this cell again.
 
-PERMUTE_GRAPHS = True
+PERMUTE_TESTS = True
 
 # How much time between logging and printing the current results.
-log_every_seconds = 20
+log_every_seconds = 40
 
 var_names = [
     "iteration number",
@@ -1611,7 +1611,7 @@ var_names += [
     "test/generalization fraction examples solved correctly"
 ]
 
-if PERMUTE_GRAPHS:
+if PERMUTE_TESTS:
     var_names += [
         "test/generalization loss with permutations",
         "test/generalization mse with permutations",
@@ -1632,7 +1632,7 @@ labels += [
     "Cge",
     "Sge"
 ]
-if PERMUTE_GRAPHS:
+if PERMUTE_TESTS:
     labels += [
         "Lpe",
         "Cpe",
@@ -1675,14 +1675,14 @@ for iteration in range(last_iteration, num_training_iterations):
 
     the_time = time.time()
     elapsed_since_last_log = the_time - last_log_time
-    if True: #elapsed_since_last_log > log_every_seconds:
+    if iteration % 10 == 0: #elapsed_since_last_log > log_every_seconds:
         save_path = saver.save(sess, "./tmp/model.ckpt")
         last_log_time = the_time
         
         raw_graphs_test = generate_raw_graphs(rand, num_examples, num_nodes_min_max_ge, theta)
         
         #Permute raw_graphs
-        if PERMUTE_GRAPHS:
+        if PERMUTE_TESTS:
             raw_graphs_permutation = [
                 nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))}) 
                 for graph in raw_graphs_test
@@ -1769,7 +1769,7 @@ for iteration in range(last_iteration, num_training_iterations):
             solved_ge_test
         ]
 
-        if PERMUTE_GRAPHS:
+        if PERMUTE_TESTS:
             row += [
                 test_values_permutation["loss_permutation"],
                 correct_ge_permutation, 

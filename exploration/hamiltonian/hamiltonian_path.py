@@ -753,16 +753,20 @@ def target_from_raw(raw):
 
     solution_length = 0
     # Nodes
-    fields = ("weight","solution")
+    fields = ('solution', )
     for node, feature in raw.nodes(data=True):
-        target.add_node(node, features=create_feature(feature, fields))
+        target.add_node(node, features=to_one_hot(
+                create_feature(feature, fields).astype(int), 2
+            )[0]
         solution_length += int(feature["solution"])
 
     solution_length /= raw.number_of_nodes()
     # Edges
-    fields = (DISTANCE_WEIGHT_NAME,"solution")
+    fields = ("solution", )
     for receiver, sender, feature in raw.edges(data=True):
-        target.add_edge(sender, receiver, features=create_feature(feature, fields))
+        target.add_edge(sender, receiver, features=to_one_hot(
+                create_feature(feature, fields).astype(int), 2
+            )[0]
 
     target.graph["features"] = np.array([solution_length], dtype=float)
 

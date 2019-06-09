@@ -19,11 +19,11 @@ import numpy as np
 from scipy import spatial
 import tensorflow as tf
 
-SEED = 42
+SEED = 300
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
-#!mkdir geo
+!mkdir geo
 
 #@title Debug { form-width: "20%" }
 debug_tags = {
@@ -1138,10 +1138,8 @@ for k, raw in enumerate(graphs):
 def source_from_raw(raw):
     source = nx.DiGraph()
     # Nodes
-    fields = ('rgbxy','solution')
+    fields = ('rgbxy',)
     for node, feature in raw.nodes(data=True):
-        feature = dict(feature)
-        feature['solution'] = np.zeros(shape = feature['solution'].shape)
         source.add_node(
             node, features=create_feature(feature, fields)
         )
@@ -1162,12 +1160,12 @@ def target_from_raw(raw):
     target = nx.DiGraph()
     solution_length = 0
     # Nodes
-    fields = ('rgbxy','solution')
+    fields = ('solution', )
     for node, feature in raw.nodes(data=True):
-        feature = dict(feature)
-        feature['rgbxy'] = np.zeros(shape = feature['rgbxy'].shape)
         target.add_node(
-            node, features=create_feature(feature, fields)
+            node, features=to_one_hot(
+                create_feature(feature, fields).astype(int), 2
+            )[0]
         )
     # Edges
     fields = ('solution',)
@@ -1453,8 +1451,8 @@ theta = 60  # Large values (1000+) make trees. Try 20-60 for good non-trees.
 batch_size_tr = 5
 batch_size_ge = 100
 # Number of nodes per graph sampled uniformly from this range.
-num_nodes_min_max_tr = (32, 65)
-num_nodes_min_max_ge = (64, 129)
+num_nodes_min_max_tr = (16, 33) #(32, 65)
+num_nodes_min_max_ge = (32, 65) #(64, 129)
 
 # Data.
 # Input and target placeholders.
@@ -1463,7 +1461,7 @@ input_ph, target_ph = create_placeholders(raw_graphs)
 
 # Connect the data to the model.
 # Instantiate the model.
-model = EncodeProcessDecode(edge_output_size=2, node_output_size=6)
+model = EncodeProcessDecode(edge_output_size=2, node_output_size=2)
 # A list of outputs, one per processing step.
 debug({"input_ph" : input_ph})
 output_ops_tr = model(input_ph, num_processing_steps_tr)
@@ -1648,7 +1646,7 @@ last_log_time = start_time
 for iteration in range(last_iteration, num_training_iterations):
     last_iteration = iteration
     #Check if it`s time to repeat the dataset
-    if iteration % 1000 == 0:
+    if iteration % 25 == 0:
         np.random.seed(SEED)
         tf.set_random_seed(SEED)
     
@@ -1675,7 +1673,7 @@ for iteration in range(last_iteration, num_training_iterations):
 
     the_time = time.time()
     elapsed_since_last_log = the_time - last_log_time
-    if iteration % 10 == 0: #elapsed_since_last_log > log_every_seconds:
+    if iteration % 3 == 0: #elapsed_since_last_log > log_every_seconds:
         save_path = saver.save(sess, "./tmp/model.ckpt")
         last_log_time = the_time
         

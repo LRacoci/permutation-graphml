@@ -19,7 +19,7 @@ import numpy as np
 from scipy import spatial
 import tensorflow as tf
 
-SEED = 300
+SEED = 200
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
@@ -1592,6 +1592,7 @@ def compute_accuracy(target, output, use_nodes=False, use_edges=True):
 # training by simply executing this cell again.
 
 PERMUTE_TESTS = True
+PERMUTE_TRAIN = True
 
 # How much time between logging and printing the current results.
 log_every_seconds = 40
@@ -1651,6 +1652,13 @@ for iteration in range(last_iteration, num_training_iterations):
         tf.set_random_seed(SEED)
     
     raw_graphs = generate_raw_graphs(rand, num_examples, num_nodes_min_max_tr, theta)
+
+    if PERMUTE_TRAIN:
+        raw_graphs = [
+            nx.relabel_nodes(graph, mapping={i: p for i,p in enumerate(np.random.permutation(len(graph)))}) 
+            for graph in raw_graphs
+        ]
+    
     sources, targets = generate_networkx_graphs(raw_graphs)
     feed_dict = create_feed_dict(sources, targets, input_ph, target_ph)
     train_values = sess.run({

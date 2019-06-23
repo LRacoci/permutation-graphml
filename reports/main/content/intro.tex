@@ -6,9 +6,15 @@ Artificial Intelligence has gone through a renaissance with progress on computer
 
 \begin{figure}[!htb]
 \centering
-\subfigure[Fully connected]{\includegraphics[height=3.0cm]{fig/content/intro/simpleNeuralNetwork/fcn.pdf}}
-\subfigure[Convolutional]{\includegraphics[height=3.0cm]{fig/content/intro/simpleNeuralNetwork/cnn.pdf}}
-\subfigure[Recurrent]{\includegraphics[height=3.0cm]{fig/content/intro/simpleNeuralNetwork/rnn.pdf}}
+\subfigure[Fully connected]{
+    \includegraphics[height=3.0cm]{fig/content/intro/simple_neural_network/fully_connected.pdf}
+}
+\subfigure[Convolutional]{
+    \includegraphics[height=3.0cm]{fig/content/intro/simple_neural_network/convolutional.pdf}
+}
+\subfigure[Recurrent]{
+    \includegraphics[height=3.0cm]{fig/content/intro/simple_neural_network/recurrent.pdf}
+}
 \caption{Simplified representation of some neural networks models ~\cite{Battaglia_2018}}
 
 \label{fig:img1}
@@ -25,6 +31,6 @@ Given a graph $G = (V, A)$ consisting of $n$ nodes $V$ and values $A$ attached t
 
 When constructing a functional relation $f(A^l) \approx T^l$, where $f$ is a neural network and $T^l$ are the corresponding targets, if $f$ is order invariant, then it should produce the same output regardless of the node numbering used to encode $A$.
 
-For example: Given an arbitrary adjacency matrix $A = A \in \mathds{R}^{n \times n}$, representing the graph. For an arbitrary permutation matrix P, the function f is order invariant if it satisfies $f(P^T A P) = f(A)$.
+For example: Given an arbitrary adjacency matrix $A = A \in \mathds{R}^{n \times n}$, representing the graph. For an arbitrary permutation matrix $P$, the function f is order invariant if it satisfies $f(P^T A P) = f(A)$.
 
 Since the neighborhood aggregation approach is as powerful as the Weisfeiler-Lehman graph isomorphism test ~\cite{Xu_2018}, we conjectured that the the Graph Nets’ approach would not be order invariant which would reflect in limitations on the algorithms’ performance when dealing with copies of a graph but permuted in representation. 

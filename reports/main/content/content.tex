@@ -4,7 +4,7 @@
 
 Gilmer et al. describes Message Passing Neural Networks (MPNN) as a framework that generalizes at least eight models found in the literature ~\cite{Gilmer_2017}. The MPNN method describes a messaging and a readout phase on forward propagation.
 	
-The hidden nodes, hvt, are updated based on messages mvt+1, for a number of timesteps.
+The hidden nodes, $h_v^t$, are updated based on messages $m_v^{t+1}$, for a number of timesteps.
 
 \begin{equation}
     \label{eqn:message}
@@ -65,7 +65,7 @@ In it, the forward pass is computed by repeatedly applying a weighted sum of a f
 
 \subsection{Graph Independent}
 
-The Graph Independent module applies models to the graph elements independently, that is, the models are applied to each element of the graph (nodes, edges and globals) in parallel and independently of the other elements.
+The Graph Independent module applies models to the graph elements independently, i.e., the models are applied to each element of the graph (nodes, edges and globals) in parallel regardless of other elements.
 
 \begin{figure}[!htb]
     \centering
@@ -149,7 +149,7 @@ The output can be transformed simply by partitioning the graph with a Depth Firs
 
 The problem that we explored is the reduced one: Given the graph network described and exemplified below, with features indicating color and position in each vertex, produce the graph with vertices of different regions in different connected components and with features indicating in what region the vertex is. Since the set of edges in the solution is always a subset of the edges in the input, we used an edge feature to indicate if the corresponding edge is part of the solution.
 
-\begin{figure}[!htb]
+\begin{figure}[H]
     \centering
     
     \subfigure[Input image and associated graph]{
@@ -165,22 +165,78 @@ The problem that we explored is the reduced one: Given the graph network describ
 \end{figure}
 
 
-
-
 \section{Methodology}
-
 
 \subsection{The Model}
 
+The experiments used a full encode-process-decode model. That is, the model included three components:
+
+\begin{itemize}
+
+    \item Encoder: the Graph Independent module, which independently encodes the nodes, edges and global attributes
+    
+    \item Core: the Graph Network (GN) module, which performs N rounds of message-passing processing steps. The input is the concatenation of the Encoder’s output and the Core’s previous output.
+    
+    \item Decoder: the Graph Independent module, which independently decodes nodes, edges and global attributes on each message-passing step.
+
+\end{itemize}
+
+The model looks like this:
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[height=3.0cm]{fig/content/model/model.jpg}
+    \caption{The model}
+\end{figure}
+
+We used supervised learning to train the model. 
+
+The training loss is computed on the output of each processing step. This encourages the model to try to solve the problem in as few steps as possible, and helps the output of intermediate steps to be more interpretable.
+
+The testing loss is computed only on the final processing step and evaluates how well the model generalizes to graphs that are larger than those it was trained.
+
+The experiments consisted of:
+
+\begin{enumerate}[label=(\Alph*)]
+
+    \item Training on non-permuted data and testing on both non-permuted  and permuted data.
+    
+    \item Training on permuted data and testing on both non-permuted and permuted data.
+
+\end{enumerate}
 
 \subsection{Physics Experiments}
 
+The experiments followed the baseline model described by (A) and (B).
+
+The default parameters were used, i.e. learning rate 10-3, a 105 training iterations, with test being applied every 20 seconds, training batch size 256 and test batch size 100.
+
+In (A) the permutation was applied as a branch from the original test dataset, but with permuted node feature vector and senders/receivers.
+
+In (B) the permutation was applied during training graphs’ generation.
+
+Sum of squared error was applied to determine loss at each evaluation. Accuracy was not calculated.
 
 \subsection{Shortest Paths Experiments}
 
+The graphs are geographic threshold graphs with add edges (using a minimum spanning tree algorithm) to guarantee that all nodes are connected. Then, attributes that indicates the shortest path from A to B are added to the graph. From this graph, called raw graph, we get the source and target graphs which are fed to the model described above.
+
+The training graphs have a range of number of nodes from 8 to 17, and for the testing graphs we have a range of 16 to 33. The batch sizes are 5, for training, and 100, for testing.
+
+The loss were computed using Softmax Cross Entropy from TensorFlow. The optimizer we used were the Adam Optimizer, also from TensorFlow. And for the learning rate we used $10^{-3}$. These were the default parameters used by the model from Graph Nets.
 
 \subsection{Regions Separation Experiments}
 
+To produce the input graph, we first generate an image consisting of two shapes in different colors with a random noise applied to the whole image.
+
+The input graph nodes are created for each pixel of the image and from each pixel is extracted horizontal and vertical position along with red, green and blue channels as node features.
+
+The input graph edges are created by connecting vertices with adjacent pixels (vertically and horizontally, not diagonally).
+The target graph is a similar network, but with edge features indicating if the respective edge is part of the solution.
+
+An edge is considered to be part of the solution if the two corresponding pixels are from the same region of the image, if they have the same color before the applied noise or, in other words, if it is not in the separation of the two shapes.
+
+The training graphs have a range of number of nodes from 8 to 17, and for the testing graphs we have a range of 16 to 33. The batch sizes are 5, for training, and 100, for testing.
 
 
 \section{Results and Discussion}
@@ -188,20 +244,110 @@ The problem that we explored is the reduced one: Given the graph network describ
 
 \subsection{Experiments A - Physics}
 
-\subsubsection {Permutation of test sets}
+\subsubsection {Permutation of the testing set}
 
-\subsubsection {Permutation of training sets}
-
+\subsubsection {Permutation of the training and testing sets}
 
 \subsection{Experiments B - Shortest Paths}
+
+The experiments were done with different SEEDs (the graphs were generated randomly with the SEEDs), and with different configurations:
+
+\begin{itemize}
+    \item Only with permutation of the testing set
+    
+    \begin{enumerate}[label=(\Alph*)]
+
+        \item Infinite dataset
+        
+        \item With epochs (every 25 iterations)
+
+    \end{enumerate}
+    
+    \item Permutation of the training and testing sets
+    
+    \begin{enumerate}[label=(\Alph*)]
+
+        \item Infinite dataset
+        
+        \item With epochs (every 25 iterations)
+        
+        \item Various permutations of the same training set (per epoch)
+
+    \end{enumerate}
+\end{itemize}
+
+\subsubsection {Permutation of the testing set}
+
+    \begin{enumerate}[label=(\Alph*)]
+
+        \item Infinite dataset
+        
+        \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/base.png}
+            \caption{Infinite training set with permutations only of the testing set}
+            \label{fig:shotest_paths_base_results}
+        \end{figure}
+        
+        \item With epochs (every 25 iterations)
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/epochs_base.png}
+            \caption{Training set repeating on every 25 iterations, with permutations only of the testing set}
+            \label{fig:shotest_paths_base_epochs_results}
+        \end{figure}
+
+    \end{enumerate}
+
+\subsubsection {Permutation of the training and testing sets}
+
+\begin{enumerate}[label=(\Alph*)]
+
+        \item Infinite dataset
+        
+        \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/training_perm.png}
+            \caption{Infinite training set with permutations}
+            \label{fig:shotest_paths_train_perm_results}
+        \end{figure}
+        
+        \item With epochs (every 25 iterations)
+        
+        \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/epochs_perm.png}
+            \caption{Training set repeating on every 25 iterations with permutations}
+            \label{fig:shotest_paths_epochs_perm_results}
+        \end{figure}
+        
+        \item Various permutations of the same training set (per epoch)
+        
+        \begin{figure}[!htb]
+            \centering
+            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/various_perms_per_epoch.png}
+            \caption{Training with various permutations per epoch}
+            \label{fig:shotest_paths_varios_perms_results}
+        \end{figure}
+
+    \end{enumerate}
+    
+\subsection{Experiments C - Regions Separation}
 
 \subsubsection {Permutation of the testing set}
 
 \subsubsection {Permutation of the training and testing sets}
 
+\begin{figure}[H]
+    \centering
+    \subfigure[Testing in graphs with and without representational permutations]{
+        \includegraphics[width=.45\linewidth]{fig/content/results/shapes/ptr.png}
+    }
+    \subfigure[Same but permuting the training set as well]{
+        \includegraphics[width=.45\linewidth]{fig/content/results/shapes/ptr.png}
+    }
+    \caption{Visualization of an entry of the dataset used for the Region Separation problem}
+    \label{fig:regions_separation_results}
+\end{figure}
 
-\subsection{Experiments C - Regions Separation}
-
-\subsubsection {Permutation of test sets}
-
-\subsubsection {Permutation of training sets}

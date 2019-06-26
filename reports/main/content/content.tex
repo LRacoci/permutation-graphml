@@ -209,7 +209,7 @@ The experiments consisted of:
 
 The experiments followed the baseline model described by (A) and (B).
 
-The default parameters were used, i.e. learning rate 10-3, a 105 training iterations, with test being applied every 20 seconds, training batch size 256 and test batch size 100.
+The default parameters were used, i.e. learning rate $10^{-3}$, a $10^5$ training iterations, with test being applied every 20 seconds, training batch size 256 and test batch size 100.
 
 In (A) the permutation was applied as a branch from the original test dataset, but with permuted node feature vector and senders/receivers.
 
@@ -236,66 +236,119 @@ The target graph is a similar network, but with edge features indicating if the 
 
 An edge is considered to be part of the solution if the two corresponding pixels are from the same region of the image, if they have the same color before the applied noise or, in other words, if it is not in the separation of the two shapes.
 
-The training graphs have a range of number of nodes from 8 to 17, and for the testing graphs we have a range of 16 to 33. The batch sizes are 5, for training, and 100, for testing.
+The training graphs have the number of nodes taken from a uniform distribution in the range from 8 to 17, and for the testing graphs we have a range of 16 to 33. The batch sizes are 5, for training, and 100, for testing. We used an epoch with 25 iterations, testing every 3 iterations in a simple and a permuted graph. In total the algorithm ran through 125 iterations, so 5 epochs. This is all repeated with 5 different seeds.
 
+The loss were computed using Softmax Cross Entropy from TensorFlow. The optimizer we used were the Adam Optimizer, also from TensorFlow. And for the learning rate we used $10^{-3}$.
 
 \section{Results and Discussion}
 
+For the Loss graphics, we used:
+
+    \begin{itemize}
+        \item Ltr: training loss
+        \item Lge: testing/generalization loss
+        \item Lpe: permuted testing/generalization loss
+        \item Lge4: testing/generalization loss with 4 masses
+        \item Lpe4: permuted testing/generalization loss with 4 masses
+        \item Lge9: testing/generalization loss with 9 masses
+        \item Lpe9: permuted testing/generalization loss with 9 masses
+    \end{itemize}
+    
+And for the Accuracy graphics, we used:
+
+    \begin{itemize}
+        \item Str: training graphs solved correctly
+        \item Sge: testing/generalization graphs solved correctly
+        \item Spe: permuted testing/generalization graphs solved correctly
+        \item Ctr: training graph elements correctly labeled
+        \item Cge: testing/generalization graph elements correctly labeled
+        \item Cpe: permuted testing/generalization graph elements correctly labeled
+    \end{itemize}
 
 \subsection{Experiments A - Physics}
 
 \subsubsection {Permutation of the testing set}
 
+This experiment was carried out to compare the network’s performance between testing against a dataset and its permuted version. The results of this setup are shown in Fig.\ref{fig:physics_base_results} with a logarithmic scale indicating the training and test losses (both baseline and permuted).
+
+The Loss graphic (Fig.\ref{fig:physics_base_results}) exhibits higher loss for Lpe4 and Lpe9 curves (permutation test). The permutation loss curves kept above the 100 mark during all the training, while the baseline loss curves kept as high as 10 or less on average. This indicates an increase in difficulty to detect next states when the network had to deal with permuted data.
+
+An explanation for this is that the network may have learned well to identify some key features. For example, it may have learned the fixation of the first and last masses, as of the order of input of nodes, and derived the spring-mass pattern for trajectory projection for intermediate nodes.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\linewidth]{fig/content/results/physics/physics_base.png}
+    \caption{Loss graphic of the physics experiment with permutations only of the testing set}
+    \label{fig:physics_base_results}
+\end{figure}
+
 \subsubsection {Permutation of the training and testing sets}
+
+This experiment evaluated the algorithm’s performance on raw test data and permuted test data after training with permutations.
+
+The results displayed in the Loss graphic (Fig.\ref{fig:physics_perm_results}) show smaller differences between raw test data and permuted test data. The results indicate the network’s loss was diminished when training with permuted data.
+
+An explanation for this phenomenon is that the use of randomness for determining the position of masses in the system input (implemented as nodes) increases the generalization capability of the network.
+In some timestamps (e.g. around 500s and 1000s) of the training, the network reached higher accuracy on permuted data over the original, baseline data.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\linewidth]{fig/content/results/physics/physics_perm.png}
+    \caption{Loss graphic of the physics experiment with permuted training and testing sets}
+    \label{fig:physics_perm_results}
+\end{figure}
 
 \subsection{Experiments B - Shortest Paths}
 
-The experiments were done with different SEEDs (the graphs were generated randomly with the SEEDs), and with different configurations:
-
-\begin{itemize}
-    \item Only with permutation of the testing set
-    
-    \begin{enumerate}[label=(\Alph*)]
-
-        \item Infinite dataset
-        
-        \item With epochs (every 25 iterations)
-
-    \end{enumerate}
-    
-    \item Permutation of the training and testing sets
-    
-    \begin{enumerate}[label=(\Alph*)]
-
-        \item Infinite dataset
-        
-        \item With epochs (every 25 iterations)
-        
-        \item Various permutations of the same training set (per epoch)
-
-    \end{enumerate}
-\end{itemize}
+The experiments were done with different SEEDs (the graphs were randomly generated with the SEEDs), and with different configurations:
 
 \subsubsection {Permutation of the testing set}
-
     \begin{enumerate}[label=(\Alph*)]
 
         \item Infinite dataset
+        \label{sec:infinite_test_only}
         
-        \begin{figure}[!htb]
-            \centering
-            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/base.png}
-            \caption{Infinite training set with permutations only of the testing set}
-            \label{fig:shotest_paths_base_results}
-        \end{figure}
+        An infinite dataset were used for the training and testing sets, at each iteration new graphs were randomly generated to train and test the network. The testing set were evaluated with and without permutations.
         
-        \item With epochs (every 25 iterations)
+        The Loss graphic (Fig.\ref{fig:shotest_paths_base_results}) shows that the loss of the permuted testing set is the highest and, different from the loss of the non-permuted testing set, is not decreasing after iteration 75.
+        
+        And in the Accuracy graphic (Fig.\ref{fig:shotest_paths_base_ACC_results}) we can see that the network does not learn to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy is far from 1).
         
         \begin{figure}[H]
             \centering
-            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/epochs_base.png}
-            \caption{Training set repeating on every 25 iterations, with permutations only of the testing set}
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/base.png}
+            \caption{Loss graphic with infinite training set with permutations only of the testing set}
+            \label{fig:shotest_paths_base_results}
+        \end{figure}
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/base_ACC.png}
+            \caption{Accuracy graphic with infinite training set with permutations only of the testing set}
+            \label{fig:shotest_paths_base_ACC_results}
+        \end{figure}
+        
+        \item With epochs (every 25 iterations)
+        \label{sec:epochs_test_only}
+        
+        A limited dataset were used for the training set, the SEED were reset on every 25 iterations, generating epochs. The testing set were evaluated with and without permutations.
+        
+        The Loss graphic(Fig. \ref{fig:shotest_paths_base_epochs_results}) shows that the loss of the permuted testing set is still the highest and, although it is seems more uniform than Fig. \ref{fig:shotest_paths_base_results}, the trend shows that the results from configurations (A) and (B) are very similar.
+        
+        This similarity is also seen in the Accuracy graphic(Fig. \ref{fig:shotest_paths_base_epochs_ACC_results}). The network does not learn to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy is far from 1).
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/epochs_base.png}
+            \caption{Loss graphic with training set repeating on every 25 iterations, with permutations only of the testing set}
             \label{fig:shotest_paths_base_epochs_results}
+        \end{figure}
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/epochs_base_ACC.png}
+            \caption{Accuracy graphic with training set repeating on every 25 iterations, with permutations only of the testing set}
+            \label{fig:shotest_paths_base_epochs_ACC_results}
         \end{figure}
 
     \end{enumerate}
@@ -306,48 +359,130 @@ The experiments were done with different SEEDs (the graphs were generated random
 
         \item Infinite dataset
         
-        \begin{figure}[!htb]
+        The difference from the subsection 5.2.1 \ref{sec:infinite_test_only} is that now we permuted the training set as well.
+        
+        The loss of the permuted testing set in Fig.\ref{fig:shotest_paths_train_perm_results} is lower than in Fig.\ref{fig:shotest_paths_base_results}. The permuted testing set's loss trend converges with the non-permuted testing set's loss trend.
+        
+        The Accuracy graphic (Fig.\ref{fig:shotest_paths_train_perm_ACC_results}) also shows an improvement in the networks' learning. We can see that now the network learns to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy reaches 1).
+        
+        \begin{figure}[H]
             \centering
-            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/training_perm.png}
-            \caption{Infinite training set with permutations}
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/training_perm.png}
+            \caption{Loss graphic with infinite permuted training set}
             \label{fig:shotest_paths_train_perm_results}
+        \end{figure}
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/training_perm_ACC.png}
+            \caption{Accuracy graphic with infinite permuted training set}
+            \label{fig:shotest_paths_train_perm_ACC_results}
         \end{figure}
         
         \item With epochs (every 25 iterations)
         
-        \begin{figure}[!htb]
+        The difference from the subsection 5.2.1 \ref{sec:epochs_test_only} is that now we permuted the training set as well.
+        
+        The Loss graphic (Fig.\ref{fig:shotest_paths_epochs_perm_results}) shows that the trend of the loss of the permuted testing set also converges with the trend of the loss of the non-permuted testing set, similar to Fig. \ref{fig:shotest_paths_train_perm_results}.
+        
+        This similarity is also seen in the Accuracy graphic (Fig.\ref{fig:shotest_paths_epochs_perm_ACC_results}). The network learns to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy reaches 1).
+        
+        \begin{figure}[H]
             \centering
-            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/epochs_perm.png}
-            \caption{Training set repeating on every 25 iterations with permutations}
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/epochs_perm.png}
+            \caption{Loss graphic with permuted training set repeating on every 25 iterations}
             \label{fig:shotest_paths_epochs_perm_results}
+        \end{figure}
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/epochs_perm_ACC.png}
+            \caption{Accuracy graphic with permuted training set repeating on every 25 iterations}
+            \label{fig:shotest_paths_epochs_perm_ACC_results}
         \end{figure}
         
         \item Various permutations of the same training set (per epoch)
         
-        \begin{figure}[!htb]
+        A limited dataset were used for the training set, the SEED were reset on every 25 iterations, generating epochs. But now, on every iteration we generate a different permutation of the same dataset and train the network with it.
+        
+        Since we are training with different permutations of the same dataset, we expected the network to learn how to deal with permutations faster, but it does not seem to be the case (as we can see in the Loss graphic from Fig.\ref{fig:shotest_paths_varios_perms_results}, which is very similar to the Loss graphic from Fig.\ref{fig:shotest_paths_epochs_perm_results}).
+        
+        However, in the Accuracy graphic (Fig.\ref{fig:shotest_paths_varios_perms_ACC_results}) the trends start to increase earlier compared to the Accuracy graphic from Fig.\ref{fig:shotest_paths_epochs_perm_ACC_results}. The network learns to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy reaches 1), as well.
+        
+        \begin{figure}[H]
             \centering
-            \includegraphics[width=.45\linewidth]{fig/content/results/shortest_path/various_perms_per_epoch.png}
-            \caption{Training with various permutations per epoch}
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/various_perms_per_epoch.png}
+            \caption{Loss graphic training with various permutations per epoch}
             \label{fig:shotest_paths_varios_perms_results}
+        \end{figure}
+        
+        \begin{figure}[H]
+            \centering
+            \includegraphics[width=.9\linewidth]{fig/content/results/shortest_path/various_perms_per_epoch_ACC.png}
+            \caption{Accuracy graphic training with various permutations per epoch}
+            \label{fig:shotest_paths_varios_perms_ACC_results}
         \end{figure}
 
     \end{enumerate}
     
 \subsection{Experiments C - Regions Separation}
+% \begin{figure}[H]
+%     \centering
+%     \subfigure[Testing in graphs with and without representational permutations]{
+%         \includegraphics[width=.9\linewidth]{fig/content/results/shapes/base.png}
+%     }
+%     \subfigure[Same but permuting the training set as well]{
+%         \includegraphics[width=.9\linewidth]{fig/content/results/shapes/ptr.png}
+%     }
+%     \caption{Influence of representational permutations in test and train sets}
+%     \label{fig:regions_separation_results}
+% \end{figure}
+
+The results of the experiments described before were plotted separating the cases of permuted (Fig.\ref{fig:regions_separation_permuting_training_loss}) and non-permuted (Fig.\ref{fig:regions_separation_base_loss}) training and for each one, separating the loss of test/generalization with permutations in the test set (pe) and without them (ge).
 
 \subsubsection {Permutation of the testing set}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\linewidth]
+    {fig/content/results/shapes/base/loss.png}
+    \caption{Loss graphic of the experiments without permutations in the training set}
+    \label{fig:regions_separation_base_loss}
+\end{figure}
+
+Without permutations in the data structure representation of the graphs in the training set, we can observe a clear separation between the loss of test with (Lpe) and without (Lge) permutations in the representation, which suggests, at least in this case, that in this framework, the algorithm is not invariant with respect to those permutations in the data structure representation of the graphs.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\linewidth]
+    {fig/content/results/shapes/base/correct.png}
+    \caption{Accuracy graphic of the experiments without permutations in the training set}
+    \label{fig:regions_separation_base_accuracy}
+\end{figure}
+
+Analysing the accuracy plot considering the proportion of correct predicted nodes and edges (Fig.\ref{fig:regions_separation_base_accuracy}) in the case without permutations in the training set, we can see that Cge reached 100\% but Cpe didn't. In fact accuracy slightly decreases after the first peak.
 
 \subsubsection {Permutation of the training and testing sets}
 
 \begin{figure}[H]
     \centering
-    \subfigure[Testing in graphs with and without representational permutations]{
-        \includegraphics[width=.45\linewidth]{fig/content/results/shapes/ptr.png}
-    }
-    \subfigure[Same but permuting the training set as well]{
-        \includegraphics[width=.45\linewidth]{fig/content/results/shapes/ptr.png}
-    }
-    \caption{Visualization of an entry of the dataset used for the Region Separation problem}
-    \label{fig:regions_separation_results}
+    \includegraphics[width=.9\linewidth]
+    {fig/content/results/shapes/permuted_training/loss.png}
+    \caption{Loss graphic of the experiment with permutations in the training set}
+    \label{fig:regions_separation_permuting_training_loss}
 \end{figure}
+
+Permuting the representations of the training set, even though the difference between Lge and Lpe is greatly reduced in comparison with the previous experiment (without permutations in training), we can see that no loss gets below 0.2 when in the previous one, they get below 0.05 which suggests a significant reduction in the performance of the network.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.9\linewidth]
+    {fig/content/results/shapes/permuted_training/correct.png}
+    \caption{Accuracy graphic of the experiment with permutations in the training set}
+    \label{fig:regions_separation_permuting_training_accuracy}
+\end{figure}
+
+Analysing the accuracy plot \ref{fig:regions_separation_permuting_training_accuracy} in the case with permutations in the training set, we can see that nor Cpe neither Cge reach 100\%, which means that none of them actually learned to solve the problem in the time box available. 
+
+
 

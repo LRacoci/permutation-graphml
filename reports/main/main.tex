@@ -1,10 +1,9 @@
-\documentclass[11pt,a4paper]{article}
-
+\documentclass[11pt,twoside]{article}
+\usepackage{techrep-PFG-ic}
+\usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
-%\usepackage[portuguese]{babel}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
-%\usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{subfigure}
@@ -20,84 +19,64 @@
 \usepackage{geometry}
 \usepackage{float}
 \usepackage{enumitem}
-
 \usepackage{ dsfont }
-
-\geometry{top=2.3cm,bottom=2.2cm,left=2.5cm,right=2.5cm}
-
-\renewcommand{\subfigtopskip}{2pt}
-\renewcommand{\subfigbottomskip}{0pt}
-\renewcommand{\subfigcapskip}{-2pt}
-
-\newenvironment{myenumerate}{
-\begin{enumerate}
-  \setlength{\itemsep}{-2pt}
-  \setlength{\parskip}{0pt}
-  \setlength{\parsep}{5pt}
-}{\end{enumerate}}
-
-\newenvironment{myitemize}{
-\begin{itemize}
-  \setlength{\itemsep}{5pt}
-  \setlength{\parskip}{0pt}
-  \setlength{\parsep}{5pt}
-}{\end{itemize}}
-
-%\renewcommand{\familydefault}{\sfdefault}
 
 \begin{document}
 
-\tolerance=999
-\sloppy
+\TRNumber{20}
 
-%\renewcommand\bibname{References}
+\TRYear{19} 
+\TRMonth{06} 
 
-%\thispagestyle{empty}
 
-\input{header}
+\TRAuthor{A. Corrales \and A. Idalgo \and L. A. Racoci}
 
-\tableofcontents
+\TRTitle{Combinatory Study\\on Graph Network Predictions}
+
+\TRMakeCover
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% O que segue é apenas uma sugestão - sinta-se à vontade para
+% usar seu formato predileto, desde que as margens tenham pelo
+% menos 25mm nos quatro lados, e o tamanho do fonte seja pelo menos
+% 11pt. Certifique-se também de que o título e lista de autores
+% estão reproduzidos na íntegra na página 1, a primeira depois da
+% página de capa.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Nomes de autores ABREVIADOS e titulo ABREVIADO,
+% para cabeçalhos em cada página.
+%
+\markboth{Corrales, Idalgo, Racoci e Adin}{Combinatory Study}
+\pagestyle{myheadings}
+
 
 \title{Combinatory Study on Graph Network Predictions}
 
 \author{
-    \normalsize
-    \textbf{Professor Adín Ramírez},
-    \normalsize
-    \\
-    \normalsize
-    Alan Corrales, RA 154475; \\
-    Allana Idalgo, RA 145166; \\
-    Lucas  Racoci, RA 156331
+    Allan Corrales
+    \and Allana Idalgo
+    \and Lucas Alves Racoci
+    \and Adín Ramírez
+    \thanks{Institute of Computation, State University of Campinas, 13081-970  Campinas}
 }
-\date{\vspace{-5ex}}
+
+\date{}
+
 \maketitle
 
-
-\vspace*{0.5cm}
-
-\begin{spacing}{1.15}
-
-\pagenumbering{roman}
-\setcounter{page}{1}
 \input{content/abstract}
 
-\pagenumbering{arabic}
-\setcounter{page}{1}
 
 \input{content/intro}
 \input{content/content}
 \input{content/conclusions}
 
-
-
-\end{spacing}
-
 {\small
-\begin{singlespace}
+
 \bibliographystyle{bib/IEEEtran}
 \bibliography{bib/bib.bib}
-\end{singlespace}
 }
 
 \input{content/appendix}

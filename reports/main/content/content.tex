@@ -77,7 +77,7 @@ The Graph Independent module applies models to the graph elements independently,
 
 The Graph Networks (GN) framework generalizes and extends various graph neural network approaches, such as MPNN and NLNN (Non Local Neural Networks) ~\cite{Battaglia_2018}. A Graph Net is composed of blocks which operate a sequence of steps according to its configuration. One possible configuration, a full GN block (a), predicts node, edge, and global features based on its incoming nodes, edges, and global features.
 
-Graph Nets framework encompasses flexible representations, configurable in-block structure and composable multi-block architectures ~\cite{Battaglia_2018}. This is shown in the example block arrangements in \ref{fig:graph_nets_flexibility} In each block, $\phi$ (phi) functions may be applied to incoming attributes and $\rho$ functions to aggregate them, generating new, updated output values (shown as either $u'$, $V'$ or $E'$).
+Graph Nets framework encompasses flexible representations, configurable in-block structure and composable multi-block architectures ~\cite{Battaglia_2018}. This is shown in the example block arrangements in (Fig. \ref{fig:graph_nets_flexibility}) In each block, $\phi$ (phi) functions may be applied to incoming attributes and $\rho$ functions to aggregate them, generating new, updated output values (shown as either $u'$, $V'$ or $E'$).
 
 \begin{figure}[!htb]
     \centering
@@ -286,14 +286,13 @@ An explanation for this is that the network may have learned well to identify so
 
 This experiment evaluated the algorithm’s performance on raw test data and permuted test data after training with permutations.
 
-The results displayed in the Loss graphic (Fig.\ref{fig:physics_perm_results}) show smaller differences between raw test data and permuted test data. The results indicate the network’s loss was diminished when training with permuted data.
+The results displayed in the Loss graphic (Fig.\ref{fig:physics_perm_results}) show smaller differences between raw test data and permuted test data. These results indicate the algorithm is actually learning and optimizing for permuted test data as well.
 
 An explanation for this phenomenon is that the use of randomness for determining the position of masses in the system input (implemented as nodes) increases the generalization capability of the network.
-In some timestamps (e.g. around 500s and 1000s) of the training, the network reached higher accuracy on permuted data over the original, baseline data.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=.9\linewidth]{fig/content/results/physics/physics_perm.png}
+    \includegraphics[width=.9\linewidth]{fig/content/results/physics/physics_perm_minium_squares.png}
     \caption{Loss graphic of the physics experiment with permuted training and testing sets}
     \label{fig:physics_perm_results}
 \end{figure}
@@ -361,7 +360,7 @@ The experiments were done with different SEEDs (the graphs were randomly generat
         
         The difference from the subsection 5.2.1 \ref{sec:infinite_test_only} is that now we permuted the training set as well.
         
-        The loss of the permuted testing set in Fig.\ref{fig:shotest_paths_train_perm_results} is lower than in Fig.\ref{fig:shotest_paths_base_results}. The permuted testing set's loss trend converges with the non-permuted testing set's loss trend.
+        The loss of the permuted testing set in (Fig.\ref{fig:shotest_paths_train_perm_results}) is lower than in (Fig.\ref{fig:shotest_paths_base_results}). The permuted testing set's loss trend converges with the non-permuted testing set's loss trend.
         
         The Accuracy graphic (Fig.\ref{fig:shotest_paths_train_perm_ACC_results}) also shows an improvement in the networks' learning. We can see that now the network learns to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy reaches 1).
         
@@ -383,7 +382,7 @@ The experiments were done with different SEEDs (the graphs were randomly generat
         
         The difference from the subsection 5.2.1 \ref{sec:epochs_test_only} is that now we permuted the training set as well.
         
-        The Loss graphic (Fig.\ref{fig:shotest_paths_epochs_perm_results}) shows that the trend of the loss of the permuted testing set also converges with the trend of the loss of the non-permuted testing set, similar to Fig. \ref{fig:shotest_paths_train_perm_results}.
+        The Loss graphic (Fig.\ref{fig:shotest_paths_epochs_perm_results}) shows that the trend of the loss of the permuted testing set also converges with the trend of the loss of the non-permuted testing set, similar to (Fig. \ref{fig:shotest_paths_train_perm_results}).
         
         This similarity is also seen in the Accuracy graphic (Fig.\ref{fig:shotest_paths_epochs_perm_ACC_results}). The network learns to identify the shortest path on the permuted testing set (the trend of the permuted testing set's accuracy reaches 1).
         
@@ -446,7 +445,7 @@ The results of the experiments described before were plotted separating the case
     \centering
     \includegraphics[width=.9\linewidth]
     {fig/content/results/shapes/base/loss.png}
-    \caption{Loss graphic of the experiments without permutations in the training set}
+    \caption{Loss plot of the experiments without permutations in the training set}
     \label{fig:regions_separation_base_loss}
 \end{figure}
 
@@ -456,7 +455,7 @@ Without permutations in the data structure representation of the graphs in the t
     \centering
     \includegraphics[width=.9\linewidth]
     {fig/content/results/shapes/base/correct.png}
-    \caption{Accuracy graphic of the experiments without permutations in the training set}
+    \caption{Accuracy plot of the experiments without permutations in the training set}
     \label{fig:regions_separation_base_accuracy}
 \end{figure}
 
@@ -482,7 +481,7 @@ Permuting the representations of the training set, even though the difference be
     \label{fig:regions_separation_permuting_training_accuracy}
 \end{figure}
 
-Analysing the accuracy plot \ref{fig:regions_separation_permuting_training_accuracy} in the case with permutations in the training set, we can see that nor Cpe neither Cge reach 100\%, which means that none of them actually learned to solve the problem in the time box available. 
+Analysing the accuracy plot (Fig. \ref{fig:regions_separation_permuting_training_accuracy}) in the case with permutations in the training set, we can see that nor Cpe neither Cge reach 100\%, which means that none of them actually learned to solve the problem in the time box available. 
 
 
 

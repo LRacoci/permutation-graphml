@@ -1,7 +1,13 @@
 \section{Conclusions}
 
-In the experiments we carried out, it was possible to verify meaningful differences in learning between not permuted and permuted test cases, where permuted test sets caused some neural networks to perform poorer.
+In the experiments we carried out, it was possible to verify meaningful differences in learning between non-permuted and permuted testing sets, where permuted testing sets caused some networks to perform poorer.
 
-Also, the algorithms seem to perform better if the problems being solved have no structural dependency between the computer representation and its actual real-world version.
+Also, the difference in the losses of the the permuted and non-permuted testing sets with non-permuted training set seems to have a relationship with the pattern in the data structure representation of the graphs. 
 
-An explored improvement for the invariance problem in graph representation is the use of permuted training sets for the networks, where the graph networks achieved better results.
+In the Regions Separation experiment, this difference seems to be the greatest, because the non-permuted representation stores every pixel in an specific order.
+
+In the Physics experiment, this difference can be explained by the fixed masses which in the non-permuted representation are always the first and the last masses.
+
+In the Shortest Paths experiment, this difference is not so representative. This can be explained by the way in which the graphs are generated, randomly with a modified geographic threshold algorithm.
+
+In all these experiments, we explored a possible improvement for the invariance problem in graph representation where the use of permuted training sets achieved better results.
